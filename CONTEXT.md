@@ -49,8 +49,12 @@ One numbered line of the solution: a calculation, its unit and its explanation, 
 _Avoid_: Step (reserved for the routine), operation
 
 **Plan**:
-The ordered list of what each action finds (the explanations after the dashes), decided before any calculating. A word problem can have more than one valid plan.
+The ordered list of what each action finds (the explanations after the dashes), each line decided before its action is calculated. A word problem can have more than one valid plan.
 _Avoid_: Strategy, solution path
+
+**Direction check**:
+A question before an action: will its result be more or less than a number she already knows? She answers it from what the relation means, never from a word. The school calls it прикидка.
+_Avoid_: Estimate (a numeric guess, dropped from the routine), sign rule
 
 **Write-up**:
 The full written solution as her school expects it: the short record, then «Розв'язання» as numbered actions, then «Відповідь» as a full sentence.
@@ -60,9 +64,17 @@ _Avoid_: Solution format, notebook entry
 A word problem in the PoC in which the app prompts and checks steps of the routine.
 _Avoid_: Tutorial, walkthrough, worked example (a worked example is shown in full, not prompted)
 
+**Paper step**:
+A routine step the app no longer prompts: the learner writes that part of the write-up in her notebook, and the app checks it before the next step opens, by what she types or picks or, where it can't, by yes/no questions beside its model.
+_Avoid_: Faded step, offline step, unguided step
+
 **Fading**:
-The gradual handing-over of routine steps from the app to the learner across the problem set, ending with unaided work on paper.
+The gradual handing-over of routine steps from the app to the learner across the problem set: the app stops prompting a step but keeps checking it, ending with her writing every step on paper and choosing the next one herself.
 _Avoid_: Scaffolding, difficulty ramp (difficulty comes from the levels)
+
+**Solo try**:
+An optional way to play one of the last problems: the whole problem at once in her notebook, with a switch to step by step at any time. Step by step stays the default.
+_Avoid_: Test, unaided mode, challenge
 
 **Verdict**:
 The two-part outcome of the PoC: *does it help* (judged by the parent, from what they know of her abilities before and after the trial) and *is it interesting* (judged by the learner's own opinion).

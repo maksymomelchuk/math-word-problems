@@ -1,0 +1,1456 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Мок: ігрові механіки</title>
+<style>
+  :root {
+    --bg: #f6f7f3; --card: #fffffc; --ink: #2f3133; --muted: #686c70; --line: #e3e5df; --line-2: #d3d6cf;
+    --green: #58cc02; --green-d: #46a302; --green-ink: #3a8500; --green-bg: #e6f9d4;
+    --blue: #1cb0f6; --blue-d: #1899d6; --blue-ink: #0a76ad; --blue-bg: #ddf4ff;
+    --purple: #ce82ff; --purple-d: #a568cc;
+    --orange: #ff9600; --orange-d: #d97f00; --orange-bg: #fff2df; --orange-ink: #9a5a00;
+    --red: #ff4b4b; --red-d: #e03a3a; --red-ink: #c62b2b; --red-bg: #ffe5e5;
+    --gold: #ffc800; --gold-d: #e3a600;
+    --off: #e1e3de; --off-d: #c9ccc5; --off-ink: #9a9e97;
+    --nb-ink: #2b4f9c; --nb-bg: #e8edf9;
+    --font: ui-rounded, "SF Pro Rounded", "Nunito", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --ease-out: cubic-bezier(.23, 1, .32, 1);
+    --mb: 0px;
+  }
+  .js { --mb: 44px; }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; font: 17px/1.45 var(--font); color: var(--ink); background: var(--bg); -webkit-font-smoothing: antialiased; }
+  button { font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+  h1, h2, h3 { margin: 0; text-wrap: balance; }
+  p { margin: 0; }
+  svg { flex: none; }
+  [hidden] { display: none !important; }
+  :focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+
+  /* ---------- mock state (outcome, before / after) ---------- */
+  body[data-outcome="clean"] [data-show]:not([data-show~="clean"]),
+  body[data-outcome="hints"] [data-show]:not([data-show~="hints"]),
+  body[data-outcome="shown"] [data-show]:not([data-show~="shown"]) { display: none !important; }
+  .variant:not(.is-after) [data-when="after"], .variant.is-after [data-when="before"] { display: none !important; }
+
+  /* ---------- mock bar (parent) ---------- */
+  .mockbar { position: sticky; top: 0; z-index: 40; height: 44px; display: flex; align-items: center; gap: 6px; padding: 0 8px; background: #2c2e31; color: #f2f2ee; }
+  .tabs { display: flex; gap: 4px; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+  .tab { flex: none; border: 0; background: transparent; color: #d4d6d0; padding: 0 12px; height: 32px; border-radius: 999px; font-size: 15px; font-weight: 700; white-space: nowrap; transition: background-color 150ms ease, color 150ms ease; }
+  .tab[aria-pressed="true"] { background: #f6f7f3; color: #2c2e31; }
+  .gear { flex: none; display: grid; place-items: center; width: 44px; height: 36px; border: 0; border-radius: 10px; background: transparent; color: #d4d6d0; }
+  .gear[aria-expanded="true"] { background: #45484c; color: #fff; }
+  .gear svg { width: 22px; height: 22px; }
+  .mockpanel { position: sticky; top: 44px; z-index: 39; max-height: calc(100vh - 44px); overflow-y: auto; background: #3a3d41; color: #f0f0ec; font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  .mockpanel-in { max-width: 1100px; margin: 0 auto; padding: 10px 14px 14px; display: grid; gap: 10px; }
+  .mockpanel p { color: #cfd1cb; max-width: 75ch; }
+  .mockpanel a { color: #9fdcff; }
+  .ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  .ctl > span { color: #b9bcb5; margin-right: 4px; }
+  .ctl button { border: 1px solid #5b5e62; background: transparent; color: #f0f0ec; border-radius: 8px; padding: 6px 10px; min-height: 36px; }
+  .ctl button[aria-pressed="true"] { background: #f0f0ec; color: #2c2e31; border-color: #f0f0ec; }
+  .ctl label { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; margin-right: 10px; }
+  .ctl input { width: 18px; height: 18px; }
+  .fallback-label { display: block; padding: 10px 16px; background: #2c2e31; color: #f2f2ee; font-size: 14px; font-weight: 700; }
+  .js .fallback-label { display: none; }
+  html:not(.js) .mockbar, html:not(.js) .mockpanel { display: none; }
+
+  /* ---------- design notes (parent) ---------- */
+  .note { display: none; max-width: 1100px; margin: 12px auto 0; padding: 0 16px; }
+  .note > div { background: #fffbe6; border: 1px dashed #d9b400; border-radius: 12px; padding: 10px 12px; font: 14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #5a4a00; max-width: 80ch; }
+  .notes-on .note { display: block; }
+
+  /* ---------- shared app pieces ---------- */
+  .screen { min-height: calc(100vh - var(--mb)); min-height: calc(100dvh - var(--mb)); display: flex; flex-direction: column; }
+  .appbar { position: sticky; top: var(--mb); z-index: 20; background: var(--card); border-bottom: 2px solid var(--line); }
+  .appbar-in { max-width: 1100px; margin: 0 auto; padding: 8px 16px; min-height: 54px; display: flex; align-items: center; gap: 18px; }
+  .stat { display: inline-flex; align-items: center; gap: 6px; font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .stat svg { width: 26px; height: 26px; }
+  .stat small { font-size: 15px; font-weight: 700; color: var(--muted); }
+  .stat-flame { color: var(--orange); }
+  .stat-xp { color: var(--gold-d); }
+  .stat-star { color: var(--gold-d); }
+  .stat-heart { color: var(--red); }
+  .stat-goal { color: var(--orange-d); }
+  .appbar .where { margin-left: auto; color: var(--muted); font-weight: 700; font-size: 15px; white-space: nowrap; }
+
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 54px; padding: 0 26px; border-radius: 16px; border: 0; font-size: 18px; font-weight: 800; letter-spacing: .02em; transition: transform 100ms ease-out, box-shadow 100ms ease-out; }
+  .btn-primary { background: var(--green); color: #fff; box-shadow: 0 4px 0 var(--green-d); }
+  .btn-primary:active { transform: translateY(4px); box-shadow: 0 0 0 var(--green-d); }
+  .btn svg { width: 22px; height: 22px; }
+
+  .bottom { position: sticky; bottom: 0; z-index: 15; margin-top: auto; background: var(--card); border-top: 2px solid var(--line); padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); }
+  .bottom-in { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; gap: 12px; justify-content: flex-end; }
+  .bottom .btn { flex: 1; }
+  .sc-count { flex: none; color: var(--muted); font-weight: 700; font-size: 15px; font-variant-numeric: tabular-nums; }
+  .sc-count b { color: var(--ink); }
+  @media (min-width: 640px) { .bottom .btn { flex: 0 0 auto; min-width: 220px; } .sc-count { margin-right: auto; } }
+
+  .side-card { background: var(--card); border: 2px solid var(--line); border-radius: 18px; padding: 18px; }
+  .side-card + .side-card { margin-top: 16px; }
+  .side-h { display: flex; align-items: center; gap: 8px; font-size: 19px; font-weight: 800; margin-bottom: 10px; }
+  .side-h svg { width: 26px; height: 26px; }
+  .side-p { color: var(--muted); font-size: 15px; margin-top: 10px; }
+  .bar { display: block; height: 14px; border-radius: 999px; background: var(--off); overflow: hidden; }
+  .bar i { display: block; height: 100%; width: calc(var(--p) * 100%); border-radius: inherit; background: var(--uc, var(--green)); }
+  .nb-chip { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; font-size: 14px; font-weight: 800; color: var(--nb-ink); }
+  .nb-chip svg { width: 18px; height: 18px; }
+
+  .home { flex: 1; width: 100%; max-width: 1100px; margin: 0 auto; padding: 20px 16px 56px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; align-content: start; }
+  @media (min-width: 1000px) {
+    .home { grid-template-columns: minmax(0, 1fr) 340px; gap: 48px; padding-top: 32px; align-items: start; }
+    .home .side { position: sticky; top: calc(var(--mb) + 88px); }
+  }
+
+  /* app vs notebook split (handover, problem stub) */
+  .split { width: 100%; display: grid; gap: 10px; text-align: left; }
+  .split-row { background: var(--card); border: 2px solid var(--line); border-radius: 16px; padding: 12px 14px; }
+  .split-row h3 { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .split-row h3 svg { width: 18px; height: 18px; }
+  .split-row.paper h3 { color: var(--nb-ink); }
+  .stepchips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .stepchips span { padding: 4px 10px; border-radius: 10px; background: var(--blue-bg); color: var(--blue-ink); font-weight: 800; font-size: 15px; }
+  .split-row.paper .stepchips span { background: var(--nb-bg); color: var(--nb-ink); }
+  .split-row p { color: var(--muted); font-size: 15px; margin-top: 8px; }
+
+  /* ---------- problem stub ---------- */
+  .stub-top { position: sticky; top: var(--mb); z-index: 20; background: var(--bg); }
+  .stub-top-in { max-width: 760px; margin: 0 auto; padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
+  .x { display: grid; place-items: center; width: 44px; height: 44px; border: 0; background: transparent; color: var(--off-ink); border-radius: 12px; }
+  .x svg { width: 26px; height: 26px; }
+  .segs { flex: 1; display: flex; gap: 4px; }
+  .segs i { flex: 1; height: 12px; border-radius: 6px; background: var(--off); }
+  .segs i.cur { background: var(--blue); }
+  .segs i.pp { background: var(--nb-bg); }
+  .stub { width: 100%; max-width: 760px; margin: 0 auto; padding: 12px 16px 32px; display: grid; gap: 16px; }
+  .problem-text { background: var(--card); border: 2px solid var(--line); border-radius: 16px; padding: 16px 18px; font-size: 20px; line-height: 1.55; }
+  .stub-skip { color: var(--muted); font-size: 15px; }
+
+  /* ---------- handover (shared) ---------- */
+  .handover { flex: 1; width: 100%; max-width: 620px; margin: 0 auto; padding: 24px 16px 36px; display: grid; gap: 18px; justify-items: center; text-align: center; align-content: start; }
+  .ho-k { font-size: 15px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .ho-title { font-size: 27px; line-height: 1.2; font-weight: 800; max-width: 22ch; }
+  .ho-tip { color: var(--muted); font-size: 16px; max-width: 40ch; }
+  .nb-art { width: 170px; height: 128px; }
+
+  /* ---------- end screen (shared) ---------- */
+  .end { flex: 1; width: 100%; max-width: 1100px; margin: 0 auto; padding: 24px 16px 36px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 32px; align-content: start; }
+  @media (min-width: 640px) { .end { max-width: 720px; } }
+  @media (min-width: 1000px) {
+    .end { max-width: 1100px; grid-template-columns: minmax(0, 400px) minmax(0, 620px); justify-content: center; gap: 56px; padding-top: 40px; align-items: start; }
+    .end-result { position: sticky; top: calc(var(--mb) + 32px); }
+  }
+  .end-result { text-align: center; display: grid; gap: 14px; justify-items: center; }
+  .end-kicker { font-size: 15px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .end-title { font-size: 30px; line-height: 1.15; font-weight: 800; }
+  .end-sub { color: var(--muted); font-size: 17px; max-width: 34ch; }
+  .again-row { display: flex; align-items: center; gap: 10px; text-align: left; max-width: 380px; width: 100%; padding: 12px 14px; border-radius: 16px; background: var(--blue-bg); color: var(--blue-ink); font-weight: 700; font-size: 16px; }
+  .again-row svg { width: 26px; height: 26px; }
+
+  /* ---------- Розбір (identical in all options) ---------- */
+  .rozbir { display: grid; gap: 14px; }
+  @media (min-width: 640px) { .rozbir { background: var(--card); border: 2px solid var(--line); border-radius: 20px; padding: 22px 22px 24px; } }
+  .rz-title { font-size: 26px; font-weight: 800; }
+  .rz-lead { color: var(--muted); font-size: 16px; margin-top: -8px; }
+  .rz-h { font-size: 15px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
+  .nb { background-color: #fffffd; background-image: linear-gradient(#e2e9f8 1px, transparent 1px), linear-gradient(90deg, #e2e9f8 1px, transparent 1px); background-size: 20px 20px; border: 1.5px solid #dbe2f1; border-radius: 12px; padding: 12px 14px; font-size: 16px; line-height: 1.6; font-variant-numeric: tabular-nums; }
+  .nb .act { padding-left: 1.3em; text-indent: -1.3em; }
+  .nb-h { font-weight: 800; margin-top: 10px !important; }
+  .nb-h:first-child { margin-top: 0 !important; }
+  .nb-ans { font-weight: 800; margin-top: 6px !important; }
+  .nb-top { display: grid; gap: 10px; }
+  @media (min-width: 560px) { .nb-top { grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 18px; } }
+  table.vt { border-collapse: collapse; background: #fffffd; font-size: 14px; line-height: 1.3; }
+  table.vt th, table.vt td { border: 1.5px solid #b9bfca; padding: 5px 7px; text-align: center; }
+  table.vt th { background: #f1f3f6; font-weight: 700; }
+  .rozbir { grid-template-columns: minmax(0, 1fr); }
+  .nb-top { min-width: 0; overflow-x: auto; }
+  @media (max-width: 400px) { table.vt { font-size: 13px; } table.vt th, table.vt td { padding: 4px 5px; } .nb { padding: 10px 12px; } }
+  svg.bars { width: 100%; max-width: 380px; display: block; font: 14px var(--font); }
+  svg.bars .base { fill: #cfe8ff; stroke: #1899d6; }
+  svg.bars .extra { fill: #ffd8a8; stroke: #e8890c; }
+  svg.bars .guide { stroke: #999; stroke-dasharray: 3 3; }
+  ul.checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  ul.checks li { display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: start; }
+  ul.checks svg { width: 28px; height: 28px; padding: 5px; border-radius: 50%; background: var(--green-bg); color: var(--green-ink); }
+  .key { background: #fff3b0; border-radius: 14px; padding: 12px 14px; }
+  .key-k { font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #7a6400; margin-bottom: 2px; }
+  .key p:last-child { font-weight: 700; font-size: 18px; }
+  .rz-sub { color: var(--muted); font-size: 16px; margin-bottom: -6px; }
+
+  /* paper problem: what the app checked + self-checks */
+  .typed { display: grid; gap: 8px; padding: 12px 14px; border-radius: 14px; background: var(--green-bg); }
+  .typed li { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+  .typed ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  .typed svg { width: 24px; height: 24px; color: var(--green-ink); }
+  .typed .shown-ans svg { color: var(--blue-ink); }
+  .part { display: grid; gap: 10px; padding-top: 16px; border-top: 2px solid var(--line); }
+  .part-h { font-size: 19px; font-weight: 800; }
+  .sc { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+  .sc li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; align-items: center; }
+  .yn { display: flex; gap: 6px; }
+  .yn button { min-width: 56px; min-height: 44px; padding: 0 10px; border-radius: 12px; border: 2px solid var(--line-2); background: var(--card); font-weight: 800; box-shadow: 0 3px 0 var(--line-2); transition: background-color 120ms ease, border-color 120ms ease; }
+  .yn button[data-a="y"][aria-pressed="true"] { background: var(--green-bg); border-color: var(--green); color: var(--green-ink); box-shadow: 0 3px 0 var(--green); }
+  .yn button[data-a="n"][aria-pressed="true"] { background: var(--orange-bg); border-color: var(--orange); color: var(--orange-ink); box-shadow: 0 3px 0 var(--orange); }
+  .fixit { grid-column: 1 / -1; display: none; color: var(--orange-ink); font-weight: 700; font-size: 15px; }
+  .sc li.is-no .fixit { display: block; }
+  .wrongat { display: grid; gap: 10px; padding: 14px; border-radius: 14px; background: var(--blue-bg); }
+  .wrongat p { font-weight: 800; color: var(--blue-ink); }
+  .wrongat .yn { flex-wrap: wrap; }
+  .wrongat .yn button[aria-pressed="true"] { background: var(--card); border-color: var(--blue); color: var(--blue-ink); box-shadow: 0 3px 0 var(--blue); }
+
+  /* ======================================================
+     Option 1: Стежка (path + XP + streak + mascot)
+     ====================================================== */
+  .path-col { width: 100%; max-width: 520px; margin: 0 auto; }
+  .unit { --uc: var(--green); --ucd: var(--green-d); --uci: var(--green-ink); }
+  .unit.u2 { --uc: var(--blue); --ucd: var(--blue-d); --uci: var(--blue-ink); }
+  .unit.u3 { --uc: var(--purple); --ucd: var(--purple-d); --uci: #8c4fb5; }
+  .unit.u4 { --uc: var(--orange); --ucd: var(--orange-d); --uci: #a85f00; }
+  .unit-banner { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; border-radius: 16px; color: #fff; background: var(--uc); box-shadow: 0 4px 0 var(--ucd); }
+  .unit-k { font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; opacity: .9; }
+  .unit-t { font-size: 20px; font-weight: 800; }
+  .unit-banner .nb-chip { color: inherit; margin-top: 2px; }
+  .unit-badge { display: inline-flex; align-items: center; gap: 4px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .unit-badge svg { width: 22px; height: 22px; }
+  .unit.locked .unit-banner { background: var(--off); color: #6b6f68; box-shadow: 0 4px 0 var(--off-d); }
+  .path { list-style: none; margin: 0; padding: 30px 0 40px; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+  .node { position: relative; transform: translateX(calc(var(--o) * 44px)); }
+  .node-btn { display: grid; place-items: center; width: 72px; height: 66px; padding: 0; border: 0; border-radius: 50%; background: var(--uc); color: #fff; box-shadow: 0 7px 0 var(--ucd); }
+  .node-btn svg { width: 34px; height: 34px; }
+  .node.locked .node-btn { background: var(--off); color: var(--off-ink); box-shadow: 0 7px 0 var(--off-d); }
+  .node-cap { position: absolute; left: calc(100% + 14px); top: 50%; transform: translateY(-60%); white-space: nowrap; font-size: 14px; font-weight: 800; color: var(--uci); }
+  .node.locked .node-cap { color: var(--off-ink); }
+  .node.finish .node-btn { background: transparent; color: var(--off-ink); border: 3px dashed var(--off-d); box-shadow: none; }
+  .node.current { margin-top: 58px; margin-bottom: 30px; }
+  .node.current .node-btn { width: 80px; height: 74px; box-shadow: 0 7px 0 var(--ucd), 0 0 0 10px var(--bg), 0 0 0 17px #dfe2dc; }
+  .node.current .node-btn:active { transform: translateY(5px); box-shadow: 0 2px 0 var(--ucd), 0 0 0 10px var(--bg), 0 0 0 17px #dfe2dc; }
+  .node-nb { position: absolute; top: calc(100% + 24px); left: 50%; transform: translateX(-50%); }
+  .bubble { position: absolute; left: 50%; bottom: calc(100% + 24px); transform: translateX(-50%); min-height: 44px; padding: 0 18px; border-radius: 14px; border: 2px solid var(--line-2); background: var(--card); color: var(--uci); font-weight: 800; font-size: 17px; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; box-shadow: 0 3px 0 var(--line-2); animation: bob 1.8s ease-in-out infinite; }
+  .bubble::after { content: ""; position: absolute; left: 50%; top: 100%; width: 12px; height: 12px; background: var(--card); border-right: 2px solid var(--line-2); border-bottom: 2px solid var(--line-2); transform: translate(-50%, -5px) rotate(45deg); }
+  @keyframes bob { 50% { transform: translate(-50%, -4px); } }
+  .mascot-sm { position: absolute; width: 86px; height: 86px; right: calc(100% + 30px); top: 50%; transform: translateY(-58%); pointer-events: none; }
+  .v1 .side { display: none; }
+  @media (min-width: 1000px) { .v1 .side { display: block; } }
+  .week { list-style: none; margin: 4px 0 0; padding: 0; display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; font-size: 13px; font-weight: 700; color: var(--muted); }
+  .week i { display: grid; place-items: center; margin: 4px auto 0; width: 32px; height: 32px; border-radius: 50%; background: var(--off); }
+  .week .on i { background: var(--orange); color: #fff; }
+  .week .wk-today i { background: var(--card); border: 2px dashed var(--orange); }
+  .week svg { width: 18px; height: 18px; }
+
+  .burst { position: relative; width: 100%; height: 150px; display: grid; place-items: center; }
+  .mascot-lg { width: 140px; height: 140px; animation: hop 650ms var(--ease-out) both; }
+  @keyframes hop { 0% { opacity: 0; transform: translateY(24px) scale(.8); } 100% { opacity: 1; transform: none; } }
+  .confetti { position: absolute; inset: 0; pointer-events: none; }
+  .confetti i { position: absolute; left: 50%; top: 50%; width: 10px; height: 14px; border-radius: 3px; background: var(--c); opacity: 0; animation: conf 1300ms var(--ease-out) var(--d, 0ms) both; }
+  @keyframes conf {
+    0% { opacity: 1; transform: translate(-50%, -50%) scale(.3) rotate(0deg); }
+    70% { opacity: 1; }
+    100% { opacity: 0; transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) rotate(var(--r)) scale(1); }
+  }
+  .r1 .end-title { color: var(--green-ink); }
+  .speech { position: relative; max-width: 30ch; padding: 12px 16px; border: 2px solid var(--line-2); border-radius: 16px; background: var(--card); font-weight: 700; font-size: 17px; }
+  .speech::before { content: ""; position: absolute; left: 50%; bottom: 100%; width: 14px; height: 14px; background: var(--card); border-left: 2px solid var(--line-2); border-top: 2px solid var(--line-2); transform: translate(-50%, 8px) rotate(45deg); }
+  .speech.big { font-size: 20px; font-weight: 800; }
+  .ho1-title { font-size: 34px; font-weight: 800; color: var(--blue-ink); }
+  .tstats { list-style: none; margin: 4px 0 0; padding: 0; width: 100%; max-width: 380px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .tstat { border: 2px solid var(--tc); border-radius: 16px; overflow: hidden; background: var(--card); }
+  .tstat-k { display: block; background: var(--tc); color: #fff; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: 4px 4px 5px; }
+  .tstat-v { display: flex; align-items: center; justify-content: center; gap: 4px; min-height: 48px; padding: 6px 4px; font-size: 18px; font-weight: 800; color: var(--tci); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .tstat-v svg { width: 22px; height: 22px; }
+  .ts-xp { --tc: var(--gold); --tci: #9a7200; }
+  .ts-flame { --tc: var(--orange); --tci: #b56a00; }
+  .ts-path { --tc: var(--blue); --tci: var(--blue-ink); }
+
+  /* ======================================================
+     Option 2: Зірки (stars per problem)
+     ====================================================== */
+  .st { width: 18px; height: 18px; color: var(--off-d); }
+  .st.on { color: var(--gold); }
+  body[data-outcome="shown"] .by-outcome .s3 { color: var(--off-d); }
+  .lvl + .lvl { margin-top: 30px; }
+  .lvl-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+  .lvl-title { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; }
+  .lvl-head h2 { font-size: 22px; font-weight: 800; }
+  .lvl-stars { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .lvl-stars svg { width: 20px; height: 20px; color: var(--gold); }
+  .lvl.locked .lvl-head h2 { color: var(--off-ink); }
+  .lvl.locked .nb-chip { color: var(--off-ink); }
+  .lvl-lock { display: inline-flex; align-items: center; gap: 5px; color: var(--off-ink); font-size: 15px; font-weight: 700; white-space: nowrap; }
+  .lvl-lock svg { width: 18px; height: 18px; }
+  .tiles { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 10px; }
+  .tile { min-height: 86px; border-radius: 16px; background: var(--card); border: 2px solid var(--line); border-bottom-width: 5px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+  .tile-n { display: inline-flex; align-items: center; gap: 2px; font-size: 24px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; }
+  .tile-n .rep-ic { width: 18px; height: 18px; }
+  .tstars { display: flex; gap: 1px; }
+  .tile.locked { background: #eeefeb; border-color: #e4e5e1; color: var(--off-ink); }
+  .tile.locked > svg { width: 18px; height: 18px; }
+  .tile.current { grid-column: span 2; border: 0; background: none; }
+  .tile-go { width: 100%; height: 100%; min-height: 86px; border: 0; border-radius: 16px; background: var(--blue); color: #fff; box-shadow: 0 5px 0 var(--blue-d); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+  .tile-go:active { transform: translateY(5px); box-shadow: 0 0 0 var(--blue-d); }
+  .tile-go .tile-n { font-size: 26px; }
+  .tile-go .go { display: inline-flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+  .tile-go .go svg { width: 18px; height: 18px; }
+  .legend { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  .legend li { display: grid; grid-template-columns: 64px 1fr; align-items: center; gap: 8px; font-size: 16px; }
+  .legend .tstars { justify-content: flex-start; }
+  .v2 .side { order: -1; }
+  .v2 .side .total { display: none; }
+  @media (min-width: 1000px) { .v2 .side { order: 0; } .v2 .side .total { display: block; } }
+  .rep-p { display: flex; align-items: flex-start; gap: 8px; }
+  .rep-p svg { width: 18px; height: 18px; margin-top: 2px; }
+  .total-n { font-size: 34px; font-weight: 800; font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 8px; }
+  .total-n svg { width: 34px; height: 34px; color: var(--gold); }
+  .total-n small { font-size: 18px; color: var(--muted); }
+
+  .bigstars { display: flex; align-items: flex-end; justify-content: center; gap: 6px; height: 120px; padding-top: 6px; }
+  .bs { width: 84px; height: 84px; color: var(--gold); animation: pop 520ms var(--ease-out) both; }
+  .bs.s1 { --rot: -14deg; transform: rotate(-14deg); animation-delay: 120ms; }
+  .bs.s2 { width: 104px; height: 104px; margin-bottom: 16px; --rot: 0deg; animation-delay: 320ms; }
+  .bs.s3 { --rot: 14deg; transform: rotate(14deg); animation-delay: 520ms; }
+  body[data-outcome="shown"] .bigstars .s3 { color: var(--off); }
+  @keyframes pop { 0% { opacity: 0; transform: rotate(var(--rot)) scale(.3); } 60% { opacity: 1; transform: rotate(var(--rot)) scale(1.12); } 100% { opacity: 1; transform: rotate(var(--rot)) scale(1); } }
+  .r2 .end-title { color: #9a7200; }
+  .ho2-card { width: 100%; display: grid; gap: 14px; justify-items: center; background: var(--card); border: 2px solid var(--line); border-radius: 20px; padding: 22px 18px; }
+
+  /* ======================================================
+     Option 3: Сердечка (daily goal + hearts)
+     ====================================================== */
+  .hrt { width: 34px; height: 34px; color: var(--red); }
+  .hrt.empty { color: var(--off); }
+  .hearts { display: flex; gap: 6px; }
+  body[data-outcome="shown"] .v3.is-after .h4 { color: var(--off); }
+  .mini-ring { width: 26px; height: 26px; transform: rotate(-90deg); }
+  .mini-ring circle { fill: none; stroke-width: 4; }
+  .mini-ring .track { stroke: var(--off); }
+  .mini-ring .fill { stroke: var(--orange); stroke-linecap: round; stroke-dasharray: 56.5; }
+  .today { background: var(--orange-bg); border-radius: 24px; padding: 22px 20px; display: grid; gap: 20px; }
+  .today-top { display: flex; align-items: center; gap: 18px; }
+  .ring { position: relative; flex: none; width: 116px; height: 116px; }
+  .ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .ring circle { fill: none; stroke-width: 12; }
+  .ring .track { stroke: #fbdcb0; }
+  .ring .fill { stroke: var(--orange); stroke-linecap: round; stroke-dasharray: 326.7; }
+  .ring-c { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; font-weight: 800; font-size: 15px; line-height: 1.1; color: var(--orange-ink); font-variant-numeric: tabular-nums; }
+  .ring-c b { display: block; font-size: 30px; }
+  .today-k { font-size: 14px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #a35f00; }
+  .today-t { font-size: 24px; font-weight: 800; line-height: 1.2; margin-top: 2px; }
+  .today-s { color: #7b5a2a; margin-top: 4px; }
+  .next { background: var(--card); border: 2px solid var(--line); border-radius: 18px; padding: 16px; display: flex; align-items: center; gap: 14px; }
+  .next-k { font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .next-t { font-size: 22px; font-weight: 800; }
+  .next > div { min-width: 0; }
+  .next .nb-chip { margin-top: 2px; white-space: normal; }
+  .next .btn { padding: 0 20px; }
+  .next .btn { margin-left: auto; }
+  .seq-card { background: var(--card); border: 2px solid var(--line); border-radius: 18px; padding: 16px; }
+  .seq-card h2 { font-size: 19px; font-weight: 800; }
+  .seq { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  .seq li { min-width: 44px; height: 44px; padding: 0 9px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 3px; font-weight: 800; font-variant-numeric: tabular-nums; background: #eeefeb; color: var(--off-ink); }
+  .seq li.done { background: var(--orange-bg); color: var(--orange-ink); }
+  .seq li.cur { background: var(--orange); color: #fff; }
+  .seq li svg { width: 16px; height: 16px; }
+  .seq-p { color: var(--muted); font-size: 15px; margin-top: 10px; }
+  .lvls { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+  .lv { display: grid; grid-template-columns: 82px 1fr 52px; align-items: center; gap: 10px; font-weight: 700; }
+  .lv-n { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; font-size: 15px; }
+  .lv.locked { color: var(--off-ink); }
+  .lv.locked .lv-n { display: inline-flex; justify-content: flex-end; }
+  .lv.locked svg { width: 18px; height: 18px; }
+  .v3 .bar { --uc: var(--orange); }
+  @media (min-width: 1000px) {
+    .today { padding: 32px; gap: 28px; }
+    .today .ring { width: 150px; height: 150px; }
+    .today .ring-c b { font-size: 38px; }
+    .today-t { font-size: 30px; }
+  }
+
+  .r3 .ring { width: 150px; height: 150px; }
+  .r3 .ring .fill { animation: fillring 1000ms var(--ease-out) 250ms both; }
+  .r3 .ring-c b { font-size: 38px; }
+  @keyframes fillring { from { stroke-dashoffset: 108.9; } to { stroke-dashoffset: 0; } }
+  .r3 .end-title { color: #a35f00; }
+  .hearts-block { display: grid; gap: 10px; justify-items: center; background: var(--card); border: 2px solid var(--line); border-radius: 16px; padding: 14px 16px; width: 100%; max-width: 380px; }
+  .hearts-block p { font-weight: 700; }
+  .hearts-block .lost-msg { color: var(--red-ink); }
+  body[data-outcome="shown"] .r3 .h4 { color: var(--off); animation: heartlost 900ms var(--ease-out) 700ms both; }
+  @keyframes heartlost { 0% { color: var(--red); transform: scale(1); } 35% { color: var(--red); transform: scale(1.3); } 100% { color: var(--off); transform: scale(1); } }
+  .badge3 { position: relative; display: grid; place-items: center; width: 132px; height: 132px; border-radius: 50%; background: var(--orange); color: #fff; box-shadow: 0 6px 0 var(--orange-d), 0 0 0 10px var(--orange-bg); animation: pop 600ms var(--ease-out) both; --rot: 0deg; }
+  .badge3 svg { width: 64px; height: 64px; }
+  .ho3-hint { display: flex; align-items: center; gap: 10px; text-align: left; width: 100%; padding: 12px 14px; border-radius: 16px; background: var(--card); border: 2px solid var(--line); color: var(--ink); font-weight: 700; }
+  .ho3-hint svg { width: 26px; height: 26px; color: var(--red); }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    .confetti { display: none; }
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .tab:hover:not([aria-pressed="true"]) { background: #45484c; color: #fff; }
+    .btn-primary:hover { background: #61d90a; }
+  }
+</style>
+</head>
+<body data-outcome="hints">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><path d="M8 11V8.5a4 4 0 0 1 8 0V11" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><rect x="5" y="10.5" width="14" height="10.5" rx="3" fill="currentColor"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3.2l2.6 5.5 6 .8-4.4 4.2 1.1 6L12 16.8l-5.3 2.9 1.1-6-4.4-4.2 6-.8z" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20.5s-7.6-4.5-9.4-9.2C1.2 7.6 3.5 4 7.1 4c2.1 0 3.6 1.1 4.9 2.9C13.3 5.1 14.8 4 16.9 4c3.6 0 5.9 3.6 4.5 7.3-1.8 4.7-9.4 9.2-9.4 9.2z" fill="currentColor"/></symbol>
+  <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12.6 2.2c.4 3 3 4.6 4.6 7 1 1.5 1.6 3.1 1.6 4.9A6.8 6.8 0 0 1 12 21a6.8 6.8 0 0 1-6.8-6.9c0-2.5 1.2-4.6 2.9-6 .1 1.6.8 2.9 2 3.6-.2-3.5 1-6.6 2.5-9.5z" fill="currentColor"/><path d="M12 21a3.4 3.4 0 0 1-3.4-3.4c0-1.6 1-2.8 2.2-3.8.4 1.1 1.2 1.7 2.1 1.9 0-1 .3-1.9.8-2.6 1.1 1.2 1.7 2.7 1.7 4.5A3.4 3.4 0 0 1 12 21z" fill="#ffd36b"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13.5 2.5L5 13.4h6l-1.2 8.1 8.7-11.3h-6.1z" fill="currentColor" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></symbol>
+  <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M7 3.5h10v4.8a5 5 0 0 1-10 0z" fill="currentColor"/><path d="M7 5.5H4.5v1.2A3.3 3.3 0 0 0 7.8 10M17 5.5h2.5v1.2a3.3 3.3 0 0 1-3.3 3.3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M10.5 13h3v3.5h-3z" fill="currentColor"/><rect x="7.5" y="16.5" width="9" height="3.5" rx="1.2" fill="currentColor"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/></symbol>
+  <symbol id="i-again" viewBox="0 0 24 24"><path d="M4.5 12a7.5 7.5 0 1 0 2.4-5.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M5.5 3v4.5H10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-notebook" viewBox="0 0 24 24"><rect x="5.5" y="2.5" width="14" height="19" rx="2.5" fill="currentColor"/><path d="M9 8h7M9 11.5h7M9 15h4.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><path d="M3.5 6.5h3.5M3.5 12h3.5M3.5 17.5h3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="3" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M10.5 18h3" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M12 11v6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="7.5" r="1.5" fill="currentColor"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="15" cy="7" r="2.4" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="9" cy="17" r="2.4" fill="none" stroke="currentColor" stroke-width="2.2"/></symbol>
+  <!-- an open squared notebook with a pencil (handover screens) -->
+  <symbol id="nb-art" viewBox="0 0 170 128">
+    <rect x="14" y="12" width="132" height="100" rx="10" fill="#fffffd" stroke="#b9c6e4" stroke-width="3"/>
+    <path d="M26 30h108M26 42h108M26 54h108M26 66h108M26 78h108M26 90h108M26 102h108M38 18v88M50 18v88M62 18v88M98 18v88M110 18v88M122 18v88" stroke="#e2e9f8" stroke-width="1.5"/>
+    <path d="M80 12v100" stroke="#b9c6e4" stroke-width="3"/>
+    <path d="M30 36h32M30 48h40M30 60h26M30 72h36" stroke="#2b70c9" stroke-width="3" stroke-linecap="round"/>
+    <path d="M92 36h30M92 48h22" stroke="#2b70c9" stroke-width="3" stroke-linecap="round"/>
+    <g transform="rotate(-38 128 82)"><rect x="102" y="76" width="54" height="12" rx="2.5" fill="#ffc800"/><rect x="150" y="76" width="8" height="12" rx="2" fill="#ff86a8"/><path d="M102 76l-12 6 12 6z" fill="#f3d2a2"/><path d="M93.5 80.2l-3.5 1.8 3.5 1.8z" fill="#2f3133"/></g>
+  </symbol>
+  <!-- Кмітка, the option-1 mascot: a small bird (a nod to «Ліга крилатих») -->
+  <symbol id="mascot" viewBox="0 0 120 120">
+    <ellipse cx="60" cy="114" rx="28" ry="4.5" fill="#2c2e31" opacity=".1"/>
+    <path d="M57 22c1-9 8-14 15-13-4 2-6 5-6 10" fill="#1899d6"/>
+    <path d="M24 58c-11 5-14 22-6 32 9-3 13-14 11-27z" fill="#1899d6"/>
+    <path d="M96 58c11 5 14 22 6 32-9-3-13-14-11-27z" fill="#1899d6"/>
+    <ellipse cx="60" cy="65" rx="39" ry="44" fill="#1cb0f6"/>
+    <ellipse cx="60" cy="82" rx="25" ry="24" fill="#ddf4ff"/>
+    <circle cx="45" cy="54" r="12" fill="#fff"/><circle cx="75" cy="54" r="12" fill="#fff"/>
+    <circle cx="47" cy="56" r="6.5" fill="#2c2e31"/><circle cx="73" cy="56" r="6.5" fill="#2c2e31"/>
+    <circle cx="49.5" cy="53.3" r="2.2" fill="#fff"/><circle cx="75.5" cy="53.3" r="2.2" fill="#fff"/>
+    <circle cx="35" cy="69" r="5" fill="#ff86a8" opacity=".55"/><circle cx="85" cy="69" r="5" fill="#ff86a8" opacity=".55"/>
+    <path d="M53.5 66h13L60 74.5z" fill="#ff9600" stroke="#ff9600" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="M51 107v5M47 112.5h8M69 107v5M65 112.5h8" stroke="#ff9600" stroke-width="3" stroke-linecap="round"/>
+  </symbol>
+</svg>
+
+<nav class="mockbar" aria-label="Варіанти">
+  <div class="tabs">
+    <button class="tab" type="button" data-v="1" aria-pressed="true">1 · Стежка</button>
+    <button class="tab" type="button" data-v="2" aria-pressed="false">2 · Зірки</button>
+    <button class="tab" type="button" data-v="3" aria-pressed="false">3 · Сердечка</button>
+  </div>
+  <button class="gear" type="button" id="gear" aria-expanded="false" aria-controls="mockpanel" aria-label="Mock controls"><svg><use href="#i-sliders"/></svg></button>
+</nav>
+<div class="mockpanel" id="mockpanel" hidden>
+  <div class="mockpanel-in">
+    <p><b>For the parent.</b> Mock for <i>Which Duolingo-style game mechanics go into the PoC?</i>: three options for the game layer. Each has a home screen (she is at problem 10, the walking boy, in Level 2), the handover screen shown at 2.1, a stub of the problem, the end screen of problem 10, and the end screen of a paper problem (problem 30, the triangle, solved in the notebook). All three share one look and the same «Розбір», so what differs is the mechanics. The problem's own steps are in <a href="guided-flow-mock.html">guided-flow-mock.html</a>; the fading is in <a href="fading-schedule.md">fading-schedule.md</a>.</p>
+    <div class="ctl"><span>Screen:</span>
+      <button type="button" data-set-screen="home" aria-pressed="true">Home</button>
+      <button type="button" data-set-screen="handover" aria-pressed="false">Handover (2.1)</button>
+      <button type="button" data-set-screen="problem" aria-pressed="false">Problem (stub)</button>
+      <button type="button" data-set-screen="end" aria-pressed="false">End: problem 10</button>
+      <button type="button" data-set-screen="endpaper" aria-pressed="false">End: paper problem 30</button>
+    </div>
+    <div class="ctl"><span>How the problem went:</span>
+      <button type="button" data-set-outcome="clean" aria-pressed="false">No mistakes</button>
+      <button type="button" data-set-outcome="hints" aria-pressed="true">A mistake + a hint she asked for</button>
+      <button type="button" data-set-outcome="shown" aria-pressed="false">A result had to be shown (missed)</button>
+    </div>
+    <div class="ctl">
+      <label><input type="checkbox" id="notes-toggle"> Design notes</label>
+      <button type="button" id="reset">Reset all three</button>
+    </div>
+  </div>
+</div>
+
+<!-- =====================================================================
+     OPTION 1 · СТЕЖКА
+     ===================================================================== -->
+<div class="variant v1" data-variant="1">
+
+  <!-- ---------- home ---------- -->
+  <section class="screen" data-screen="home" aria-label="Варіант 1, головний екран">
+    <p class="fallback-label">Варіант 1 · Стежка · Головний екран</p>
+    <header class="appbar"><div class="appbar-in">
+      <span class="stat stat-flame" title="Днів поспіль"><svg><use href="#i-flame"/></svg><b data-when="before">4</b><b data-when="after">5</b></span>
+      <span class="stat stat-xp"><svg><use href="#i-bolt"/></svg><b data-when="before">90</b><b data-when="after">100</b> <small>XP</small></span>
+      <span class="where">Рівень 2</span>
+    </div></header>
+    <div class="note"><div><b>Option 1: lesson path + XP + daily streak + a mascot.</b> The 30 problems are one path in four levels; only the next one is open. XP: 10 for every solved problem however it went, so <b>neither a mistake nor a hint costs anything</b>. The streak (вогник) counts days with at least one solved problem; it never times her. <b>Repeats:</b> a problem where the app had to show a typed result or the final answer comes back once at the end of its level, as one more node (↻ «Повтор задачі N»), styled like the others. Level 1 shows one done; Level 2 has one queued, and a second appears after «Далі» if problem 10 was missed. The finish flag sits after any Level 4 repeats. <b>Notebook:</b> from Level 2 the banners say «із зошитом» and the next node says «Знадобиться зошит». The bird (Кмітка, a placeholder name) appears only in this option.</div></div>
+    <div class="home">
+      <main class="path-col">
+        <div class="unit u1">
+          <div class="unit-banner"><div><p class="unit-k">Рівень 1</p><p class="unit-t">Задачі 1–7</p></div><span class="unit-badge"><svg><use href="#i-check"/></svg>Пройдено</span></div>
+          <ol class="path">
+            <li class="node done" style="--o:0"><span class="node-btn" role="img" aria-label="Задача 1: розв'язано"><svg><use href="#i-check"/></svg></span></li>
+            <li class="node done" style="--o:1"><span class="node-btn" role="img" aria-label="Задача 2: розв'язано"><svg><use href="#i-check"/></svg></span></li>
+            <li class="node done" style="--o:2"><span class="node-btn" role="img" aria-label="Задача 3: розв'язано"><svg><use href="#i-check"/></svg></span></li>
+            <li class="node done" style="--o:1"><span class="node-btn" role="img" aria-label="Задача 4: розв'язано"><svg><use href="#i-check"/></svg></span></li>
+            <li class="node done" style="--o:0"><span class="node-btn" role="img" aria-label="Задача 5: розв'язано"><svg><use href="#i-check"/></svg></span></li>
+            <li class="node done" style="--o:-1"><span class="node-btn" role="img" aria-label="Задача 6: розв'язано"><svg><use href="#i-check"/></svg></span></li>
+            <li class="node done" style="--o:-2"><span class="node-btn" role="img" aria-label="Задача 7: розв'язано"><svg><use href="#i-check"/></svg></span></li>
+            <li class="node done" style="--o:-1"><span class="node-btn" role="img" aria-label="Повтор задачі 5: розв'язано"><svg><use href="#i-again"/></svg></span><span class="node-cap" aria-hidden="true">Повтор задачі 5</span></li>
+          </ol>
+        </div>
+        <div class="unit u2">
+          <div class="unit-banner"><div><p class="unit-k">Рівень 2</p><p class="unit-t">Задачі 8–15</p><p class="nb-chip"><svg><use href="#i-notebook"/></svg>із зошитом</p></div><span class="unit-badge"><span data-when="before">2 з 8</span><span data-when="after">3 з 8</span></span></div>
+          <ol class="path">
+            <li class="node done" style="--o:0"><span class="node-btn" role="img" aria-label="Задача 8: розв'язано"><svg><use href="#i-check"/></svg></span></li>
+            <li class="node done" style="--o:1"><span class="node-btn" role="img" aria-label="Задача 9: розв'язано"><svg><use href="#i-check"/></svg></span></li>
+            <li class="node current" style="--o:2" data-when="before" data-focus>
+              <button class="bubble" type="button" data-go="problem">Почати</button>
+              <button class="node-btn" type="button" data-go="problem" tabindex="-1" aria-label="Задача 10: почати"><svg><use href="#i-star"/></svg></button>
+              <svg class="mascot-sm" aria-hidden="true"><use href="#mascot"/></svg>
+              <span class="nb-chip node-nb"><svg><use href="#i-notebook"/></svg>Знадобиться зошит</span>
+            </li>
+            <li class="node done" style="--o:2" data-when="after"><span class="node-btn" role="img" aria-label="Задача 10: розв'язано"><svg><use href="#i-check"/></svg></span></li>
+            <li class="node locked" style="--o:1" data-when="before"><span class="node-btn" role="img" aria-label="Задача 11: ще закрита"><svg><use href="#i-lock"/></svg></span></li>
+            <li class="node current" style="--o:1" data-when="after" data-focus>
+              <button class="bubble" type="button" data-go="problem">Почати</button>
+              <button class="node-btn" type="button" data-go="problem" tabindex="-1" aria-label="Задача 11: почати"><svg><use href="#i-star"/></svg></button>
+              <svg class="mascot-sm" aria-hidden="true"><use href="#mascot"/></svg>
+              <span class="nb-chip node-nb"><svg><use href="#i-notebook"/></svg>Знадобиться зошит</span>
+            </li>
+            <li class="node locked" style="--o:0"><span class="node-btn" role="img" aria-label="Задача 12: ще закрита"><svg><use href="#i-lock"/></svg></span></li>
+            <li class="node locked" style="--o:-1"><span class="node-btn" role="img" aria-label="Задача 13: ще закрита"><svg><use href="#i-lock"/></svg></span></li>
+            <li class="node locked" style="--o:-2"><span class="node-btn" role="img" aria-label="Задача 14: ще закрита"><svg><use href="#i-lock"/></svg></span></li>
+            <li class="node locked" style="--o:-1"><span class="node-btn" role="img" aria-label="Задача 15: ще закрита"><svg><use href="#i-lock"/></svg></span></li>
+            <li class="node locked" style="--o:0"><span class="node-btn" role="img" aria-label="Повтор задачі 8: ще закритий"><svg><use href="#i-again"/></svg></span><span class="node-cap" aria-hidden="true">Повтор задачі 8</span></li>
+            <li class="node locked" style="--o:-1" data-when="after" data-show="shown"><span class="node-btn" role="img" aria-label="Повтор задачі 10: ще закритий"><svg><use href="#i-again"/></svg></span><span class="node-cap" aria-hidden="true">Повтор задачі 10</span></li>
+          </ol>
+        </div>
+        <div class="unit u3 locked">
+          <div class="unit-banner"><div><p class="unit-k">Рівень 3</p><p class="unit-t">Задачі 16–23</p><p class="nb-chip"><svg><use href="#i-notebook"/></svg>із зошитом</p></div><span class="unit-badge"><svg><use href="#i-lock"/></svg></span></div>
+          <ol class="path">
+            <li class="node locked" style="--o:0"><span class="node-btn" role="img" aria-label="Задача 16: ще закрита"><svg><use href="#i-lock"/></svg></span></li>
+            <li class="node locked" style="--o:1"><span class="node-btn" role="img" aria-label="Задача 17: ще закрита"><svg><use href="#i-lock"/></svg></span></li>
+            <li class="node locked" style="--o:2"><span class="node-btn" role="img" aria-label="Задача 18: ще закрита"><svg><use href="#i-lock"/></svg></span></li>
+            <li class="node locked" style="--o:1"><span class="node-btn" role="img" aria-label="Задача 19: ще закрита"><svg><use href="#i-lock"/></svg></span></li>
+            <li class="node locked" style="--o:0"><span class="node-btn" role="img" aria-label="Задача 20: ще закрита"><svg><use href="#i-lock"/></svg></span></li>
+            <li class="node locked" style="--o:-1"><span class="node-btn" role="img" aria-label="Задача 21: ще закрита"><svg><use href="#i-lock"/></svg></span></li>
+            <li class="node locked" style="--o:-2"><span class="node-btn" role="img" aria-label="Задача 22: ще закрита"><svg><use href="#i-lock"/></svg></span></li>
+            <li class="node locked" style="--o:-1"><span class="node-btn" role="img" aria-label="Задача 23: ще закрита"><svg><use href="#i-lock"/></svg></span></li>
+          </ol>
+        </div>
+        <div class="unit u4 locked">
+          <div class="unit-banner"><div><p class="unit-k">Рівень 4</p><p class="unit-t">Задачі 24–30</p><p class="nb-chip"><svg><use href="#i-notebook"/></svg>із зошитом</p></div><span class="unit-badge"><svg><use href="#i-lock"/></svg></span></div>
+          <ol class="path">
+            <li class="node locked" style="--o:0"><span class="node-btn" role="img" aria-label="Задача 24: ще закрита"><svg><use href="#i-lock"/></svg></span></li>
+            <li class="node locked" style="--o:1"><span class="node-btn" role="img" aria-label="Задача 25: ще закрита"><svg><use href="#i-lock"/></svg></span></li>
+            <li class="node locked" style="--o:2"><span class="node-btn" role="img" aria-label="Задача 26: ще закрита"><svg><use href="#i-lock"/></svg></span></li>
+            <li class="node locked" style="--o:1"><span class="node-btn" role="img" aria-label="Задача 27: ще закрита"><svg><use href="#i-lock"/></svg></span></li>
+            <li class="node locked" style="--o:0"><span class="node-btn" role="img" aria-label="Задача 28: ще закрита"><svg><use href="#i-lock"/></svg></span></li>
+            <li class="node locked" style="--o:-1"><span class="node-btn" role="img" aria-label="Задача 29: ще закрита"><svg><use href="#i-lock"/></svg></span></li>
+            <li class="node locked" style="--o:0"><span class="node-btn" role="img" aria-label="Задача 30: ще закрита"><svg><use href="#i-lock"/></svg></span></li>
+            <li class="node finish" style="--o:0"><span class="node-btn" role="img" aria-label="Фініш"><svg><use href="#i-trophy"/></svg></span></li>
+          </ol>
+        </div>
+      </main>
+      <aside class="side">
+        <section class="side-card">
+          <h2 class="side-h" style="color:var(--orange-d)"><svg><use href="#i-flame"/></svg><span data-when="before">4 дні поспіль</span><span data-when="after">5 днів поспіль</span></h2>
+          <ol class="week">
+            <li>Пн<i></i></li>
+            <li class="on">Вт<i><svg><use href="#i-flame"/></svg></i></li>
+            <li class="on">Ср<i><svg><use href="#i-flame"/></svg></i></li>
+            <li class="on">Чт<i><svg><use href="#i-flame"/></svg></i></li>
+            <li class="on">Пт<i><svg><use href="#i-flame"/></svg></i></li>
+            <li class="wk-today" data-when="before">Сб<i></i></li>
+            <li class="on" data-when="after">Сб<i><svg><use href="#i-flame"/></svg></i></li>
+            <li>Нд<i></i></li>
+          </ol>
+          <p class="side-p">Розв'язуй хоча б одну задачу на день, щоб вогник не згас.</p>
+        </section>
+        <section class="side-card unit u2" style="background:var(--card)">
+          <h2 class="side-h">Рівень 2</h2>
+          <span class="bar"><i data-when="before" style="--p:.25"></i><i data-when="after" style="--p:.375"></i></span>
+          <p class="side-p"><span data-when="before">2 з 8 задач. Усього 9 з 30.</span><span data-when="after">3 з 8 задач. Усього 10 з 30.</span> Повтори в кінці рівня теж його частина.</p>
+        </section>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ---------- handover (2.1) ---------- -->
+  <section class="screen" data-screen="handover" aria-label="Варіант 1, новий етап">
+    <p class="fallback-label">Варіант 1 · Стежка · Новий етап (на задачі 2.1)</p>
+    <div class="note"><div><b>Handover as a celebration.</b> Shown at the first problem of each new stage (2.1, 2.5, 3.1, 4.1, 4.4 and 4.6); this is the 2.1 one, which is also the start of Level 2. Confetti and the bird say the new rule, then a split of what stays in the app and what goes in the notebook. Nothing to tap but «Почати».</div></div>
+    <div class="handover">
+      <div class="burst" aria-hidden="true">
+        <div class="confetti">
+          <i style="--x:-150px;--y:-60px;--r:220deg;--c:var(--green)"></i>
+          <i style="--x:-110px;--y:-115px;--r:-160deg;--c:var(--blue);--d:40ms"></i>
+          <i style="--x:-50px;--y:-140px;--r:300deg;--c:var(--orange)"></i>
+          <i style="--x:20px;--y:-150px;--r:-240deg;--c:var(--purple);--d:60ms"></i>
+          <i style="--x:90px;--y:-125px;--r:200deg;--c:var(--gold)"></i>
+          <i style="--x:150px;--y:-62px;--r:-280deg;--c:var(--red);--d:30ms"></i>
+          <i style="--x:-165px;--y:20px;--r:-200deg;--c:var(--gold);--d:80ms"></i>
+          <i style="--x:165px;--y:18px;--r:180deg;--c:var(--blue);--d:20ms"></i>
+          <i style="--x:-95px;--y:-40px;--r:140deg;--c:var(--red);--d:100ms"></i>
+          <i style="--x:95px;--y:-48px;--r:-120deg;--c:var(--purple);--d:90ms"></i>
+        </div>
+        <svg class="mascot-lg"><use href="#mascot"/></svg>
+      </div>
+      <p class="speech big">Тепер дії і відповідь ти записуєш у зошит!</p>
+      <h1 class="ho1-title">Рівень 2</h1>
+      <div class="split">
+        <div class="split-row"><h3><svg><use href="#i-phone"/></svg>Тут, як і раніше</h3><div class="stepchips"><span>Перекажи</span><span>Знайти</span><span>Відомо</span><span>Порівняння</span><span>Тип і схема</span><span>План</span></div></div>
+        <div class="split-row paper"><h3><svg><use href="#i-notebook"/></svg>У зошиті</h3><div class="stepchips"><span>Обчисли</span><span>Відповідь</span></div><p>Результат кожної дії вводиш сюди. Потім звіряєш свій запис зі зразком.</p></div>
+      </div>
+      <p class="ho-tip">Поклади поруч зошит і ручку. Не знаєш, що далі? Натисни «Підказка».</p>
+    </div>
+    <footer class="bottom"><div class="bottom-in"><button class="btn btn-primary" type="button" data-go="problem">Почати</button></div></footer>
+  </section>
+
+  <!-- ---------- problem stub ---------- -->
+  <section class="screen" data-screen="problem" aria-label="Варіант 1, задача">
+    <p class="fallback-label">Варіант 1 · Стежка · Задача (кроки пропущено)</p>
+    <header class="stub-top"><div class="stub-top-in">
+      <button class="x" type="button" data-go="home" aria-label="Вийти"><svg><use href="#i-close"/></svg></button>
+      <span class="segs" aria-hidden="true"><i class="cur"></i><i></i><i></i><i></i><i></i><i class="pp"></i><i class="pp"></i></span>
+    </div></header>
+    <div class="note"><div>The problem's steps are skipped in this mock; they are in guided-flow-mock.html. In Level 2, Обчисли and Відповідь are paper steps: she writes them in the notebook and types each action's result. In option 1 nothing extra shows while she solves.</div></div>
+    <div class="stub">
+      <p class="end-kicker" style="text-align:left">Задача 10</p>
+      <p class="problem-text">Хлопчик пройшов 3000&nbsp;м за годину. Яку відстань він пройде за 20&nbsp;хвилин?</p>
+      <div class="split">
+        <div class="split-row"><h3><svg><use href="#i-phone"/></svg>Тут</h3><div class="stepchips"><span>Перекажи</span><span>Знайти</span><span>Відомо</span><span>Тип і схема</span><span>План</span></div></div>
+        <div class="split-row paper"><h3><svg><use href="#i-notebook"/></svg>У зошиті</h3><div class="stepchips"><span>Обчисли</span><span>Відповідь</span></div></div>
+      </div>
+      <p class="stub-skip">У цьому прикладі кроки пропущено.</p>
+    </div>
+    <footer class="bottom"><div class="bottom-in"><button class="btn btn-primary" type="button" data-go="end">Завершити задачу</button></div></footer>
+  </section>
+
+  <!-- ---------- end of problem 10 ---------- -->
+  <section class="screen" data-screen="end" aria-label="Варіант 1, кінець задачі">
+    <p class="fallback-label">Варіант 1 · Стежка · Кінець задачі 10</p>
+    <div class="note"><div>Celebration first (confetti, the bird's line, +10 XP, the streak), then the «Розбір». Only the bird's line changes with how the problem went; nothing is ever taken away. If a result had to be shown, the problem comes back at the end of the level, and the screen says so plainly. Nothing advances on its own, so she can compare with her notebook for as long as she likes.</div></div>
+    <div class="end">
+      <div class="end-result r1">
+        <div class="burst" aria-hidden="true">
+          <div class="confetti">
+            <i style="--x:-150px;--y:-60px;--r:220deg;--c:var(--green)"></i>
+            <i style="--x:-120px;--y:-115px;--r:-160deg;--c:var(--blue);--d:40ms"></i>
+            <i style="--x:-70px;--y:-140px;--r:300deg;--c:var(--orange)"></i>
+            <i style="--x:-10px;--y:-150px;--r:-240deg;--c:var(--purple);--d:60ms"></i>
+            <i style="--x:55px;--y:-145px;--r:200deg;--c:var(--gold)"></i>
+            <i style="--x:115px;--y:-118px;--r:-280deg;--c:var(--red);--d:30ms"></i>
+            <i style="--x:150px;--y:-62px;--r:260deg;--c:var(--green)"></i>
+            <i style="--x:-165px;--y:10px;--r:-200deg;--c:var(--gold);--d:80ms"></i>
+            <i style="--x:165px;--y:18px;--r:180deg;--c:var(--blue);--d:20ms"></i>
+            <i style="--x:-95px;--y:-40px;--r:140deg;--c:var(--red);--d:100ms"></i>
+            <i style="--x:95px;--y:-48px;--r:-120deg;--c:var(--purple);--d:90ms"></i>
+            <i style="--x:-35px;--y:-100px;--r:320deg;--c:var(--blue);--d:120ms"></i>
+            <i style="--x:30px;--y:-105px;--r:-300deg;--c:var(--green);--d:50ms"></i>
+          </div>
+          <svg class="mascot-lg"><use href="#mascot"/></svg>
+        </div>
+        <p class="speech">
+          <span data-show="clean">Без жодної помилки! Так тримати!</span>
+          <span data-show="hints">Підказки саме для цього. Задачу розв'язано!</span>
+          <span data-show="shown">Один результат довелося показати. Нічого страшного, подивись розбір!</span>
+        </p>
+        <h1 class="end-title">Задачу розв'язано!</h1>
+        <ul class="tstats">
+          <li class="tstat ts-xp"><span class="tstat-k">Досвід</span><span class="tstat-v"><svg><use href="#i-bolt"/></svg>+10</span></li>
+          <li class="tstat ts-flame"><span class="tstat-k">Вогник</span><span class="tstat-v"><svg><use href="#i-flame"/></svg>5 днів</span></li>
+          <li class="tstat ts-path"><span class="tstat-k">Стежка</span><span class="tstat-v">10 з 30</span></li>
+        </ul>
+        <p class="again-row" data-show="shown"><svg aria-hidden="true"><use href="#i-again"/></svg>Ця задача ще раз з'явиться в кінці рівня 2.</p>
+      </div>
+
+      <section class="rozbir" aria-labelledby="rz1">
+        <h2 class="rz-title" id="rz1">Розбір</h2>
+        <div class="nb">
+          <div class="nb-top">
+            <div><p>За 1&nbsp;год (60&nbsp;хв) — 3000&nbsp;м</p><p>За 20&nbsp;хв —&nbsp;?&nbsp;м</p></div>
+            <table class="vt" aria-label="Схема: швидкість, час, відстань">
+              <tr><th></th><th>Швидкість</th><th>Час</th><th>Відстань</th></tr>
+              <tr><th>Відомо</th><td rowspan="2">однакова</td><td>60&nbsp;хв</td><td>3000&nbsp;м</td></tr>
+              <tr><th>Шукаємо</th><td>20&nbsp;хв</td><td>?</td></tr>
+            </table>
+          </div>
+          <p class="nb-h">Розв'язання</p>
+          <p>1&nbsp;год&nbsp;=&nbsp;60&nbsp;хв</p>
+          <p class="act">1) 3000 : 60 = 50 (м) — відстань, яку хлопчик проходить за 1&nbsp;хв;</p>
+          <p class="act">2) 50 · 20 = 1000 (м) — відстань, яку хлопчик пройде за 20&nbsp;хв.</p>
+          <p class="nb-ans">Відповідь: за 20&nbsp;хв хлопчик пройде 1000&nbsp;м.</p>
+        </div>
+        <h3 class="rz-h">Перевірка</h3>
+        <ul class="checks">
+          <li><svg><use href="#i-check"/></svg><span>1000&nbsp;м менше за 3000&nbsp;м: за 20&nbsp;хв він проходить менше, ніж за годину.</span></li>
+          <li><svg><use href="#i-check"/></svg><span>20&nbsp;хв уміщаються в годині 3&nbsp;рази, а 1000 · 3 = 3000&nbsp;м. Сходиться.</span></li>
+          <li><svg><use href="#i-check"/></svg><span>Відповідь у метрах, як і питали.</span></li>
+        </ul>
+        <div class="key"><p class="key-k">Головне</p><p>Година і хвилини — різні одиниці. Перш ніж рахувати, переведи: 1&nbsp;год&nbsp;=&nbsp;60&nbsp;хв.</p></div>
+        <h3 class="rz-h">Інший правильний план</h3>
+        <p class="rz-sub">Цю задачу можна розв'язати й так:</p>
+        <div class="nb">
+          <p>1&nbsp;год&nbsp;=&nbsp;60&nbsp;хв</p>
+          <p class="act">1) 60 : 20 = 3 (рази) — у стільки разів 20&nbsp;хв менше, ніж 1&nbsp;год;</p>
+          <p class="act">2) 3000 : 3 = 1000 (м) — відстань, яку хлопчик пройде за 20&nbsp;хв.</p>
+        </div>
+      </section>
+    </div>
+    <footer class="bottom"><div class="bottom-in"><button class="btn btn-primary" type="button" data-go="home">Далі</button></div></footer>
+  </section>
+
+  <!-- ---------- end of a paper problem (30) ---------- -->
+  <section class="screen" data-screen="endpaper" aria-label="Варіант 1, кінець задачі в зошиті">
+    <p class="fallback-label">Варіант 1 · Стежка · Кінець задачі 30 (у зошиті)</p>
+    <div class="note"><div><b>End of a paper problem</b> (4.4–4.7 are solved entirely in the notebook; this is 4.7, the triangle). She typed the final answer and how many actions she wrote; the app checked those. Then the model write-up part by part, each with 2–3 yes/no self-checks that name this problem's own lines. «Ні» only says «Виправ у зошиті»: <b>self-checks never change XP, stars or hearts</b>, so there's no reason to tick «Так». With a shown answer she also taps where hers went off. In option 1 the celebration is the same as for any problem.</div></div>
+    <div class="end">
+      <div class="end-result r1">
+        <div class="burst" aria-hidden="true">
+          <div class="confetti">
+            <i style="--x:-150px;--y:-60px;--r:220deg;--c:var(--green)"></i>
+            <i style="--x:-110px;--y:-115px;--r:-160deg;--c:var(--blue);--d:40ms"></i>
+            <i style="--x:-50px;--y:-140px;--r:300deg;--c:var(--orange)"></i>
+            <i style="--x:20px;--y:-150px;--r:-240deg;--c:var(--purple);--d:60ms"></i>
+            <i style="--x:90px;--y:-125px;--r:200deg;--c:var(--gold)"></i>
+            <i style="--x:150px;--y:-62px;--r:-280deg;--c:var(--red);--d:30ms"></i>
+            <i style="--x:-165px;--y:20px;--r:-200deg;--c:var(--gold);--d:80ms"></i>
+            <i style="--x:165px;--y:18px;--r:180deg;--c:var(--blue);--d:20ms"></i>
+          </div>
+          <svg class="mascot-lg"><use href="#mascot"/></svg>
+        </div>
+        <p class="speech">
+          <span data-show="clean">Відповідь сходиться! Тепер звір зошит зі зразком.</span>
+          <span data-show="hints">Підказки саме для цього. Відповідь сходиться!</span>
+          <span data-show="shown">Відповідь довелося показати. Знайди в зошиті, де пішло не так.</span>
+        </p>
+        <h1 class="end-title">Задачу розв'язано!</h1>
+        <ul class="tstats">
+          <li class="tstat ts-xp"><span class="tstat-k">Досвід</span><span class="tstat-v"><svg><use href="#i-bolt"/></svg>+10</span></li>
+          <li class="tstat ts-flame"><span class="tstat-k">Вогник</span><span class="tstat-v"><svg><use href="#i-flame"/></svg>12 днів</span></li>
+          <li class="tstat ts-path"><span class="tstat-k">Стежка</span><span class="tstat-v">30 з 30</span></li>
+        </ul>
+        <p class="again-row" data-show="shown"><svg aria-hidden="true"><use href="#i-again"/></svg>Ця задача ще раз з'явиться в кінці рівня 4.</p>
+      </div>
+      <section class="rozbir paper-rozbir">
+        <h2 class="rz-title">Розбір</h2>
+        <p class="rz-lead">Поклади зошит поруч і звір кожну частину зі зразком. Ці питання для тебе: «Ні» нічого не забирає.</p>
+        <div class="typed">
+          <ul>
+            <li data-show="clean hints"><svg aria-hidden="true"><use href="#i-check"/></svg><span>Твоя відповідь: 37,7&nbsp;см<span data-show="hints"> (з другої спроби)</span></span></li>
+            <li class="shown-ans" data-show="shown"><svg aria-hidden="true"><use href="#i-info"/></svg><span>Правильна відповідь: 37,7&nbsp;см</span></li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg><span>Дій у тебе: 3. У зразку теж 3.</span></li>
+          </ul>
+        </div>
+
+        <div class="part">
+          <h3 class="part-h">Короткий запис</h3>
+          <div class="nb">
+            <p>AB — 8,4&nbsp;см</p>
+            <p>BC —&nbsp;?, на 3,7&nbsp;см більша, ніж AB</p>
+            <p>AC —&nbsp;?, на 5,1&nbsp;см більша, ніж BC</p>
+            <p>P —&nbsp;?</p>
+          </div>
+          <ul class="sc">
+            <li><span>Шукане записане зі знаком «?»: «P —&nbsp;?»?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
+            <li><span>Порівняння записані від шуканого: «BC —&nbsp;?, на 3,7&nbsp;см більша, ніж AB» і «AC —&nbsp;?, на 5,1&nbsp;см більша, ніж BC»?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
+            <li><span>Біля кожного числа є одиниця?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
+          </ul>
+        </div>
+
+        <div class="part">
+          <h3 class="part-h">Схема</h3>
+          <svg class="bars" viewBox="0 0 320 180" role="img" aria-label="Схема з відрізками: AB 8,4; BC на 3,7 більша; AC на 5,1 більша; периметр невідомий">
+            <text x="0" y="51">AB</text><text x="0" y="109">BC</text><text x="0" y="167">AC</text>
+            <rect class="base" x="36" y="36" width="100.8" height="20"/>
+            <rect class="base" x="36" y="94" width="100.8" height="20"/><rect class="extra" x="136.8" y="94" width="44.4" height="20"/>
+            <rect class="base" x="36" y="152" width="145.2" height="20"/><rect class="extra" x="181.2" y="152" width="61.2" height="20"/>
+            <line class="guide" x1="136.8" y1="36" x2="136.8" y2="172"/><line class="guide" x1="181.2" y1="94" x2="181.2" y2="172"/>
+            <text x="86.4" y="28" text-anchor="middle">8,4</text><text x="159" y="86" text-anchor="middle">3,7</text><text x="211.8" y="144" text-anchor="middle">5,1</text>
+            <text x="187" y="109">?</text><text x="248" y="167">?</text>
+            <path d="M268 36 q8 0 8 8 v56 l6 4 l-6 4 v56 q0 8 -8 8" fill="none" stroke="#555"/>
+            <text x="286" y="109">P ?</text>
+          </svg>
+          <ul class="sc">
+            <li><span>Схема того самого виду: відрізки?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
+            <li><span>«?» стоїть там, де шукане?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
+          </ul>
+        </div>
+
+        <div class="part">
+          <h3 class="part-h">Розв'язання</h3>
+          <div class="nb">
+            <p class="act">1) 8,4 + 3,7 = 12,1 (см) — довжина сторони BC;</p>
+            <p class="act">2) 12,1 + 5,1 = 17,2 (см) — довжина сторони AC;</p>
+            <p class="act">3) 8,4 + 12,1 + 17,2 = 37,7 (см) — периметр трикутника.</p>
+          </div>
+          <ul class="sc">
+            <li><span>Остання дія знаходить периметр трикутника?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
+            <li><span>Після кожної дії є пояснення?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
+          </ul>
+        </div>
+
+        <div class="part">
+          <h3 class="part-h">Відповідь</h3>
+          <div class="nb"><p class="nb-ans">Відповідь: периметр трикутника дорівнює 37,7&nbsp;см.</p></div>
+          <ul class="sc">
+            <li><span>Відповідь — повним реченням про периметр трикутника?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
+          </ul>
+        </div>
+
+        <div class="wrongat" data-show="shown">
+          <p>Де твій розв'язок пішов не так?</p>
+          <span class="yn pick"><button type="button" aria-pressed="false">Короткий запис</button><button type="button" aria-pressed="false">План</button><button type="button" aria-pressed="false">Обчислення</button></span>
+        </div>
+
+        <h3 class="rz-h">Перевірка</h3>
+        <ul class="checks">
+          <li><svg><use href="#i-check"/></svg><span>AC найдовша: 17,2&nbsp;см &gt; 12,1&nbsp;см &gt; 8,4&nbsp;см, як і на схемі.</span></li>
+          <li><svg><use href="#i-check"/></svg><span>AC − BC = 17,2 − 12,1 = 5,1&nbsp;см — як в умові.</span></li>
+          <li><svg><use href="#i-check"/></svg><span>Відповідь у сантиметрах.</span></li>
+        </ul>
+        <div class="key"><p class="key-k">Головне</p><p>«BC на 5,1&nbsp;см менша від AC» означає: AC більша за BC. Тому AC = BC + 5,1: у задачі слово «менша», а дія — додавання. Щоразу питай себе: шукане більше чи менше за дане?</p></div>
+      </section>
+    </div>
+    <footer class="bottom"><div class="bottom-in"><span class="sc-count">Перевірено: <b>0</b> з 8</span><button class="btn btn-primary" type="button" data-go="home">Далі</button></div></footer>
+  </section>
+</div>
+
+<!-- =====================================================================
+     OPTION 2 · ЗІРКИ
+     ===================================================================== -->
+<div class="variant v2" data-variant="2">
+
+  <!-- ---------- home ---------- -->
+  <section class="screen" data-screen="home" aria-label="Варіант 2, головний екран">
+    <p class="fallback-label">Варіант 2 · Зірки · Головний екран</p>
+    <header class="appbar"><div class="appbar-in">
+      <span class="stat stat-star"><svg><use href="#i-star"/></svg><b data-when="before">25</b><b data-when="after"><span data-show="clean hints">28</span><span data-show="shown">27</span></b> <small>з 90</small></span>
+      <span class="where">Рівень 2</span>
+    </div></header>
+    <div class="note"><div><b>Option 2: stars only.</b> Each problem earns 3 stars minus one for every answer the app had to show after two wrong tries (at least 1). <b>Hints never cost a star</b>: neither the hint after a first wrong try nor the «Підказка» she asks for on a paper step, so asking never costs more than guessing. <b>Repeats:</b> only a shown typed result or final answer makes a problem come back at the end of its level (↻ tiles, styled like the others); there she can win the star back. Any solved tile can also be replayed. The end screen no longer offers «Ще раз», because re-solving straight after the model helps less than a repeat later. No XP, streak or mascot. <b>Notebook:</b> levels 2–4 say «із зошитом», and so does the next tile.</div></div>
+    <div class="home">
+      <main>
+        <section class="lvl">
+          <div class="lvl-head"><div class="lvl-title"><h2>Рівень 1</h2></div><span class="lvl-stars"><svg><use href="#i-star"/></svg>20 з 21</span></div>
+          <ol class="tiles">
+            <li class="tile"><span class="tile-n">1</span><span class="tstars" role="img" aria-label="3 зірки"><svg class="st on"><use href="#i-star"/></svg><svg class="st on"><use href="#i-star"/></svg><svg class="st on"><use href="#i-star"/></svg></span></li>
+            <li class="tile"><span class="tile-n">2</span><span class="tstars" role="img" aria-label="3 зірки"><svg class="st on"><use href="#i-star"/></svg><svg class="st on"><use href="#i-star"/></svg><svg class="st on"><use href="#i-star"/></svg></span></li>
+            <li class="tile"><span class="tile-n">3</span><span class="tstars" role="img" aria-label="2 зірки"><svg class="st on"><use href="#i-star"/></svg><svg class="st on"><use href="#i-star"/></svg><svg class="st"><use href="#i-star"/></svg></span></li>
+            <li class="tile"><span class="tile-n">4</span><span class="tstars" role="img" aria-label="3 зірки"><svg class="st on"><use href="#i-star"/></svg><svg class="st on"><use href="#i-star"/></svg><svg class="st on"><use href="#i-star"/></svg></span></li>
+            <li class="tile"><span class="tile-n">5</span><span class="tstars" role="img" aria-label="2 зірки"><svg class="st on"><use href="#i-star"/></svg><svg class="st on"><use href="#i-star"/></svg><svg class="st"><use href="#i-star"/></svg></span></li>
+            <li class="tile"><span class="tile-n">6</span><span class="tstars" role="img" aria-label="3 зірки"><svg class="st on"><use href="#i-star"/></svg><svg class="st on"><use href="#i-star"/></svg><svg class="st on"><use href="#i-star"/></svg></span></li>
+            <li class="tile"><span class="tile-n">7</span><span class="tstars" role="img" aria-label="3 зірки"><svg class="st on"><use href="#i-star"/></svg><svg class="st on"><use href="#i-star"/></svg><svg class="st on"><use href="#i-star"/></svg></span></li>
+            <li class="tile"><span class="tile-n" aria-label="Повтор задачі 5"><svg class="rep-ic" aria-hidden="true"><use href="#i-again"/></svg>5</span><span class="tstars" role="img" aria-label="3 зірки"><svg class="st on"><use href="#i-star"/></svg><svg class="st on"><use href="#i-star"/></svg><svg class="st on"><use href="#i-star"/></svg></span></li>
+          </ol>
+        </section>
+        <section class="lvl">
+          <div class="lvl-head"><div class="lvl-title"><h2>Рівень 2</h2><span class="nb-chip"><svg><use href="#i-notebook"/></svg>із зошитом</span></div><span class="lvl-stars"><svg><use href="#i-star"/></svg><span data-when="before">5</span><span data-when="after"><span data-show="clean hints">8</span><span data-show="shown">7</span></span> з 24</span></div>
+          <ol class="tiles">
+            <li class="tile"><span class="tile-n">8</span><span class="tstars" role="img" aria-label="2 зірки"><svg class="st on"><use href="#i-star"/></svg><svg class="st on"><use href="#i-star"/></svg><svg class="st"><use href="#i-star"/></svg></span></li>
+            <li class="tile"><span class="tile-n">9</span><span class="tstars" role="img" aria-label="3 зірки"><svg class="st on"><use href="#i-star"/></svg><svg class="st on"><use href="#i-star"/></svg><svg class="st on"><use href="#i-star"/></svg></span></li>
+            <li class="tile current" data-when="before" data-focus><button class="tile-go" type="button" data-go="problem" aria-label="Задача 10: почати, знадобиться зошит"><span class="tile-n">10</span><span class="go">Почати<svg aria-hidden="true"><use href="#i-notebook"/></svg></span></button></li>
+            <li class="tile" data-when="after"><span class="tile-n">10</span><span class="tstars by-outcome" role="img" aria-label="Зірки за задачу 10"><svg class="st on s1"><use href="#i-star"/></svg><svg class="st on s2"><use href="#i-star"/></svg><svg class="st on s3"><use href="#i-star"/></svg></span></li>
+            <li class="tile locked" data-when="before"><span class="tile-n">11</span><svg aria-hidden="true"><use href="#i-lock"/></svg></li>
+            <li class="tile current" data-when="after" data-focus><button class="tile-go" type="button" data-go="problem" aria-label="Задача 11: почати, знадобиться зошит"><span class="tile-n">11</span><span class="go">Почати<svg aria-hidden="true"><use href="#i-notebook"/></svg></span></button></li>
+            <li class="tile locked"><span class="tile-n">12</span><svg aria-hidden="true"><use href="#i-lock"/></svg></li>
+            <li class="tile locked"><span class="tile-n">13</span><svg aria-hidden="true"><use href="#i-lock"/></svg></li>
+            <li class="tile locked"><span class="tile-n">14</span><svg aria-hidden="true"><use href="#i-lock"/></svg></li>
+            <li class="tile locked"><span class="tile-n">15</span><svg aria-hidden="true"><use href="#i-lock"/></svg></li>
+            <li class="tile locked"><span class="tile-n" aria-label="Повтор задачі 8"><svg class="rep-ic" aria-hidden="true"><use href="#i-again"/></svg>8</span><svg aria-hidden="true"><use href="#i-lock"/></svg></li>
+            <li class="tile locked" data-when="after" data-show="shown"><span class="tile-n" aria-label="Повтор задачі 10"><svg class="rep-ic" aria-hidden="true"><use href="#i-again"/></svg>10</span><svg aria-hidden="true"><use href="#i-lock"/></svg></li>
+          </ol>
+        </section>
+        <section class="lvl locked">
+          <div class="lvl-head"><div class="lvl-title"><h2>Рівень 3</h2><span class="nb-chip"><svg><use href="#i-notebook"/></svg>із зошитом</span></div><span class="lvl-lock"><svg><use href="#i-lock"/></svg>після рівня 2</span></div>
+          <ol class="tiles">
+            <li class="tile locked"><span class="tile-n">16</span><svg aria-hidden="true"><use href="#i-lock"/></svg></li>
+            <li class="tile locked"><span class="tile-n">17</span><svg aria-hidden="true"><use href="#i-lock"/></svg></li>
+            <li class="tile locked"><span class="tile-n">18</span><svg aria-hidden="true"><use href="#i-lock"/></svg></li>
+            <li class="tile locked"><span class="tile-n">19</span><svg aria-hidden="true"><use href="#i-lock"/></svg></li>
+            <li class="tile locked"><span class="tile-n">20</span><svg aria-hidden="true"><use href="#i-lock"/></svg></li>
+            <li class="tile locked"><span class="tile-n">21</span><svg aria-hidden="true"><use href="#i-lock"/></svg></li>
+            <li class="tile locked"><span class="tile-n">22</span><svg aria-hidden="true"><use href="#i-lock"/></svg></li>
+            <li class="tile locked"><span class="tile-n">23</span><svg aria-hidden="true"><use href="#i-lock"/></svg></li>
+          </ol>
+        </section>
+        <section class="lvl locked">
+          <div class="lvl-head"><div class="lvl-title"><h2>Рівень 4</h2><span class="nb-chip"><svg><use href="#i-notebook"/></svg>із зошитом</span></div><span class="lvl-lock"><svg><use href="#i-lock"/></svg>після рівня 3</span></div>
+          <ol class="tiles">
+            <li class="tile locked"><span class="tile-n">24</span><svg aria-hidden="true"><use href="#i-lock"/></svg></li>
+            <li class="tile locked"><span class="tile-n">25</span><svg aria-hidden="true"><use href="#i-lock"/></svg></li>
+            <li class="tile locked"><span class="tile-n">26</span><svg aria-hidden="true"><use href="#i-lock"/></svg></li>
+            <li class="tile locked"><span class="tile-n">27</span><svg aria-hidden="true"><use href="#i-lock"/></svg></li>
+            <li class="tile locked"><span class="tile-n">28</span><svg aria-hidden="true"><use href="#i-lock"/></svg></li>
+            <li class="tile locked"><span class="tile-n">29</span><svg aria-hidden="true"><use href="#i-lock"/></svg></li>
+            <li class="tile locked"><span class="tile-n">30</span><svg aria-hidden="true"><use href="#i-lock"/></svg></li>
+          </ol>
+        </section>
+      </main>
+      <aside class="side">
+        <section class="side-card total">
+          <p class="total-n"><svg><use href="#i-star"/></svg><span data-when="before">25</span><span data-when="after"><span data-show="clean hints">28</span><span data-show="shown">27</span></span> <small>з 90 зірок</small></p>
+        </section>
+        <section class="side-card">
+          <h2 class="side-h">Як отримати зірки</h2>
+          <ul class="legend">
+            <li><span class="tstars" aria-label="3 зірки"><svg class="st on"><use href="#i-star"/></svg><svg class="st on"><use href="#i-star"/></svg><svg class="st on"><use href="#i-star"/></svg></span>жодної показаної відповіді</li>
+            <li><span class="tstars" aria-label="2 зірки"><svg class="st on"><use href="#i-star"/></svg><svg class="st on"><use href="#i-star"/></svg><svg class="st"><use href="#i-star"/></svg></span>одну відповідь показано</li>
+            <li><span class="tstars" aria-label="1 зірка"><svg class="st on"><use href="#i-star"/></svg><svg class="st"><use href="#i-star"/></svg><svg class="st"><use href="#i-star"/></svg></span>дві чи більше</li>
+          </ul>
+          <p class="side-p"><b>Підказки не забирають зірок.</b> Зірку забирає лише відповідь, яку довелося показати після двох помилок.</p>
+          <p class="side-p rep-p"><svg aria-hidden="true"><use href="#i-again"/></svg><span>Якщо довелося показати результат чи відповідь, задача повернеться в кінці рівня. Там можна повернути зірку.</span></p>
+        </section>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ---------- handover (2.1) ---------- -->
+  <section class="screen" data-screen="handover" aria-label="Варіант 2, новий етап">
+    <p class="fallback-label">Варіант 2 · Зірки · Новий етап (на задачі 2.1)</p>
+    <div class="note"><div><b>Handover as plain information, no celebration.</b> One card: the new rule, what stays in the app and what goes in the notebook, and a reminder that hints don't cost stars. Shown at 2.1, 2.5, 3.1, 4.1, 4.4 and 4.6; this is the 2.1 one.</div></div>
+    <div class="handover">
+      <div class="ho2-card">
+        <svg class="nb-art" aria-hidden="true"><use href="#nb-art"/></svg>
+        <p class="ho-k">Рівень 2 · новий етап</p>
+        <h1 class="ho-title">Тепер дії і відповідь ти записуєш у зошит</h1>
+        <div class="split">
+          <div class="split-row"><h3><svg><use href="#i-phone"/></svg>Тут, як і раніше</h3><div class="stepchips"><span>Перекажи</span><span>Знайти</span><span>Відомо</span><span>Порівняння</span><span>Тип і схема</span><span>План</span></div></div>
+          <div class="split-row paper"><h3><svg><use href="#i-notebook"/></svg>У зошиті</h3><div class="stepchips"><span>Обчисли</span><span>Відповідь</span></div><p>Результат кожної дії вводиш сюди. Потім звіряєш свій запис зі зразком.</p></div>
+        </div>
+        <p class="ho-tip">Поклади поруч зошит і ручку. Підказки не забирають зірок.</p>
+      </div>
+    </div>
+    <footer class="bottom"><div class="bottom-in"><button class="btn btn-primary" type="button" data-go="problem">Почати</button></div></footer>
+  </section>
+
+  <!-- ---------- problem stub ---------- -->
+  <section class="screen" data-screen="problem" aria-label="Варіант 2, задача">
+    <p class="fallback-label">Варіант 2 · Зірки · Задача (кроки пропущено)</p>
+    <header class="stub-top"><div class="stub-top-in">
+      <button class="x" type="button" data-go="home" aria-label="Вийти"><svg><use href="#i-close"/></svg></button>
+      <span class="segs" aria-hidden="true"><i class="cur"></i><i></i><i></i><i></i><i></i><i class="pp"></i><i class="pp"></i></span>
+    </div></header>
+    <div class="note"><div>The problem's steps are skipped here. In option 2 the stars don't show while she solves; she sees them only at the end.</div></div>
+    <div class="stub">
+      <p class="end-kicker" style="text-align:left">Задача 10</p>
+      <p class="problem-text">Хлопчик пройшов 3000&nbsp;м за годину. Яку відстань він пройде за 20&nbsp;хвилин?</p>
+      <div class="split">
+        <div class="split-row"><h3><svg><use href="#i-phone"/></svg>Тут</h3><div class="stepchips"><span>Перекажи</span><span>Знайти</span><span>Відомо</span><span>Тип і схема</span><span>План</span></div></div>
+        <div class="split-row paper"><h3><svg><use href="#i-notebook"/></svg>У зошиті</h3><div class="stepchips"><span>Обчисли</span><span>Відповідь</span></div></div>
+      </div>
+      <p class="stub-skip">У цьому прикладі кроки пропущено.</p>
+    </div>
+    <footer class="bottom"><div class="bottom-in"><button class="btn btn-primary" type="button" data-go="end">Завершити задачу</button></div></footer>
+  </section>
+
+  <!-- ---------- end of problem 10 ---------- -->
+  <section class="screen" data-screen="end" aria-label="Варіант 2, кінець задачі">
+    <p class="fallback-label">Варіант 2 · Зірки · Кінець задачі 10</p>
+    <div class="note"><div>The stars, then the «Розбір». With hints only, she still gets 3 stars and the screen says hints cost nothing. A shown result costs one star, and the screen says the problem comes back at the end of the level, where she can win it back. No list of where she needed help: that is recorded for the trial, not scored.</div></div>
+    <div class="end">
+      <div class="end-result r2">
+        <p class="end-kicker">Задача 10</p>
+        <div class="bigstars" aria-hidden="true">
+          <svg class="bs s1"><use href="#i-star"/></svg><svg class="bs s2"><use href="#i-star"/></svg><svg class="bs s3"><use href="#i-star"/></svg>
+        </div>
+        <h1 class="end-title"><span data-show="clean hints">Три зірки!</span><span data-show="shown">Дві зірки</span></h1>
+        <p class="end-sub">
+          <span data-show="clean">Жодної показаної відповіді.</span>
+          <span data-show="hints">Підказки не забирають зірок.</span>
+          <span data-show="shown">Зірку забрав показаний результат 2-ї дії.</span>
+        </p>
+        <p class="again-row" data-show="shown"><svg aria-hidden="true"><use href="#i-again"/></svg>Ця задача повернеться в кінці рівня 2. Там можна повернути зірку.</p>
+      </div>
+
+      <section class="rozbir" aria-labelledby="rz2">
+        <h2 class="rz-title" id="rz2">Розбір</h2>
+        <div class="nb">
+          <div class="nb-top">
+            <div><p>За 1&nbsp;год (60&nbsp;хв) — 3000&nbsp;м</p><p>За 20&nbsp;хв —&nbsp;?&nbsp;м</p></div>
+            <table class="vt" aria-label="Схема: швидкість, час, відстань">
+              <tr><th></th><th>Швидкість</th><th>Час</th><th>Відстань</th></tr>
+              <tr><th>Відомо</th><td rowspan="2">однакова</td><td>60&nbsp;хв</td><td>3000&nbsp;м</td></tr>
+              <tr><th>Шукаємо</th><td>20&nbsp;хв</td><td>?</td></tr>
+            </table>
+          </div>
+          <p class="nb-h">Розв'язання</p>
+          <p>1&nbsp;год&nbsp;=&nbsp;60&nbsp;хв</p>
+          <p class="act">1) 3000 : 60 = 50 (м) — відстань, яку хлопчик проходить за 1&nbsp;хв;</p>
+          <p class="act">2) 50 · 20 = 1000 (м) — відстань, яку хлопчик пройде за 20&nbsp;хв.</p>
+          <p class="nb-ans">Відповідь: за 20&nbsp;хв хлопчик пройде 1000&nbsp;м.</p>
+        </div>
+        <h3 class="rz-h">Перевірка</h3>
+        <ul class="checks">
+          <li><svg><use href="#i-check"/></svg><span>1000&nbsp;м менше за 3000&nbsp;м: за 20&nbsp;хв він проходить менше, ніж за годину.</span></li>
+          <li><svg><use href="#i-check"/></svg><span>20&nbsp;хв уміщаються в годині 3&nbsp;рази, а 1000 · 3 = 3000&nbsp;м. Сходиться.</span></li>
+          <li><svg><use href="#i-check"/></svg><span>Відповідь у метрах, як і питали.</span></li>
+        </ul>
+        <div class="key"><p class="key-k">Головне</p><p>Година і хвилини — різні одиниці. Перш ніж рахувати, переведи: 1&nbsp;год&nbsp;=&nbsp;60&nbsp;хв.</p></div>
+        <h3 class="rz-h">Інший правильний план</h3>
+        <p class="rz-sub">Цю задачу можна розв'язати й так:</p>
+        <div class="nb">
+          <p>1&nbsp;год&nbsp;=&nbsp;60&nbsp;хв</p>
+          <p class="act">1) 60 : 20 = 3 (рази) — у стільки разів 20&nbsp;хв менше, ніж 1&nbsp;год;</p>
+          <p class="act">2) 3000 : 3 = 1000 (м) — відстань, яку хлопчик пройде за 20&nbsp;хв.</p>
+        </div>
+      </section>
+    </div>
+    <footer class="bottom"><div class="bottom-in"><button class="btn btn-primary" type="button" data-go="home">Далі</button></div></footer>
+  </section>
+
+  <!-- ---------- end of a paper problem (30) ---------- -->
+  <section class="screen" data-screen="endpaper" aria-label="Варіант 2, кінець задачі в зошиті">
+    <p class="fallback-label">Варіант 2 · Зірки · Кінець задачі 30 (у зошиті)</p>
+    <div class="note"><div><b>End of a paper problem</b> (4.7, the triangle, solved entirely in the notebook). Stars count only a shown final answer, never the self-checks: a «Ні» costs nothing, so there's no reason to tick «Так».</div></div>
+    <div class="end">
+      <div class="end-result r2">
+        <p class="end-kicker">Задача 30</p>
+        <div class="bigstars" aria-hidden="true">
+          <svg class="bs s1"><use href="#i-star"/></svg><svg class="bs s2"><use href="#i-star"/></svg><svg class="bs s3"><use href="#i-star"/></svg>
+        </div>
+        <h1 class="end-title"><span data-show="clean hints">Три зірки!</span><span data-show="shown">Дві зірки</span></h1>
+        <p class="end-sub">
+          <span data-show="clean">Відповідь зійшлася з першого разу.</span>
+          <span data-show="hints">Підказки не забирають зірок.</span>
+          <span data-show="shown">Зірку забрала показана відповідь.</span>
+        </p>
+        <p class="again-row" data-show="shown"><svg aria-hidden="true"><use href="#i-again"/></svg>Ця задача повернеться в кінці рівня 4. Там можна повернути зірку.</p>
+      </div>
+      <section class="rozbir paper-rozbir">
+        <h2 class="rz-title">Розбір</h2>
+        <p class="rz-lead">Поклади зошит поруч і звір кожну частину зі зразком. Ці питання для тебе: «Ні» нічого не забирає.</p>
+        <div class="typed">
+          <ul>
+            <li data-show="clean hints"><svg aria-hidden="true"><use href="#i-check"/></svg><span>Твоя відповідь: 37,7&nbsp;см<span data-show="hints"> (з другої спроби)</span></span></li>
+            <li class="shown-ans" data-show="shown"><svg aria-hidden="true"><use href="#i-info"/></svg><span>Правильна відповідь: 37,7&nbsp;см</span></li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg><span>Дій у тебе: 3. У зразку теж 3.</span></li>
+          </ul>
+        </div>
+
+        <div class="part">
+          <h3 class="part-h">Короткий запис</h3>
+          <div class="nb">
+            <p>AB — 8,4&nbsp;см</p>
+            <p>BC —&nbsp;?, на 3,7&nbsp;см більша, ніж AB</p>
+            <p>AC —&nbsp;?, на 5,1&nbsp;см більша, ніж BC</p>
+            <p>P —&nbsp;?</p>
+          </div>
+          <ul class="sc">
+            <li><span>Шукане записане зі знаком «?»: «P —&nbsp;?»?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
+            <li><span>Порівняння записані від шуканого: «BC —&nbsp;?, на 3,7&nbsp;см більша, ніж AB» і «AC —&nbsp;?, на 5,1&nbsp;см більша, ніж BC»?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
+            <li><span>Біля кожного числа є одиниця?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
+          </ul>
+        </div>
+
+        <div class="part">
+          <h3 class="part-h">Схема</h3>
+          <svg class="bars" viewBox="0 0 320 180" role="img" aria-label="Схема з відрізками: AB 8,4; BC на 3,7 більша; AC на 5,1 більша; периметр невідомий">
+            <text x="0" y="51">AB</text><text x="0" y="109">BC</text><text x="0" y="167">AC</text>
+            <rect class="base" x="36" y="36" width="100.8" height="20"/>
+            <rect class="base" x="36" y="94" width="100.8" height="20"/><rect class="extra" x="136.8" y="94" width="44.4" height="20"/>
+            <rect class="base" x="36" y="152" width="145.2" height="20"/><rect class="extra" x="181.2" y="152" width="61.2" height="20"/>
+            <line class="guide" x1="136.8" y1="36" x2="136.8" y2="172"/><line class="guide" x1="181.2" y1="94" x2="181.2" y2="172"/>
+            <text x="86.4" y="28" text-anchor="middle">8,4</text><text x="159" y="86" text-anchor="middle">3,7</text><text x="211.8" y="144" text-anchor="middle">5,1</text>
+            <text x="187" y="109">?</text><text x="248" y="167">?</text>
+            <path d="M268 36 q8 0 8 8 v56 l6 4 l-6 4 v56 q0 8 -8 8" fill="none" stroke="#555"/>
+            <text x="286" y="109">P ?</text>
+          </svg>
+          <ul class="sc">
+            <li><span>Схема того самого виду: відрізки?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
+            <li><span>«?» стоїть там, де шукане?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
+          </ul>
+        </div>
+
+        <div class="part">
+          <h3 class="part-h">Розв'язання</h3>
+          <div class="nb">
+            <p class="act">1) 8,4 + 3,7 = 12,1 (см) — довжина сторони BC;</p>
+            <p class="act">2) 12,1 + 5,1 = 17,2 (см) — довжина сторони AC;</p>
+            <p class="act">3) 8,4 + 12,1 + 17,2 = 37,7 (см) — периметр трикутника.</p>
+          </div>
+          <ul class="sc">
+            <li><span>Остання дія знаходить периметр трикутника?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
+            <li><span>Після кожної дії є пояснення?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
+          </ul>
+        </div>
+
+        <div class="part">
+          <h3 class="part-h">Відповідь</h3>
+          <div class="nb"><p class="nb-ans">Відповідь: периметр трикутника дорівнює 37,7&nbsp;см.</p></div>
+          <ul class="sc">
+            <li><span>Відповідь — повним реченням про периметр трикутника?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
+          </ul>
+        </div>
+
+        <div class="wrongat" data-show="shown">
+          <p>Де твій розв'язок пішов не так?</p>
+          <span class="yn pick"><button type="button" aria-pressed="false">Короткий запис</button><button type="button" aria-pressed="false">План</button><button type="button" aria-pressed="false">Обчислення</button></span>
+        </div>
+
+        <h3 class="rz-h">Перевірка</h3>
+        <ul class="checks">
+          <li><svg><use href="#i-check"/></svg><span>AC найдовша: 17,2&nbsp;см &gt; 12,1&nbsp;см &gt; 8,4&nbsp;см, як і на схемі.</span></li>
+          <li><svg><use href="#i-check"/></svg><span>AC − BC = 17,2 − 12,1 = 5,1&nbsp;см — як в умові.</span></li>
+          <li><svg><use href="#i-check"/></svg><span>Відповідь у сантиметрах.</span></li>
+        </ul>
+        <div class="key"><p class="key-k">Головне</p><p>«BC на 5,1&nbsp;см менша від AC» означає: AC більша за BC. Тому AC = BC + 5,1: у задачі слово «менша», а дія — додавання. Щоразу питай себе: шукане більше чи менше за дане?</p></div>
+      </section>
+    </div>
+    <footer class="bottom"><div class="bottom-in"><span class="sc-count">Перевірено: <b>0</b> з 8</span><button class="btn btn-primary" type="button" data-go="home">Далі</button></div></footer>
+  </section>
+</div>
+
+<!-- =====================================================================
+     OPTION 3 · СЕРДЕЧКА
+     ===================================================================== -->
+<div class="variant v3" data-variant="3">
+
+  <!-- ---------- home ---------- -->
+  <section class="screen" data-screen="home" aria-label="Варіант 3, головний екран">
+    <p class="fallback-label">Варіант 3 · Сердечка · Головний екран</p>
+    <header class="appbar"><div class="appbar-in">
+      <span class="stat stat-heart" title="Сердечка"><svg><use href="#i-heart"/></svg><b data-when="before">4</b><b data-when="after"><span data-show="clean hints">4</span><span data-show="shown">3</span></b></span>
+      <span class="stat stat-goal" title="Мета на сьогодні">
+        <svg class="mini-ring" viewBox="0 0 24 24" aria-hidden="true"><circle class="track" cx="12" cy="12" r="9"/><circle class="fill" cx="12" cy="12" r="9" data-when="before" style="stroke-dashoffset:18.8"/><circle class="fill" cx="12" cy="12" r="9" data-when="after" style="stroke-dashoffset:0"/></svg>
+        <b data-when="before">2</b><b data-when="after">3</b> <small>з 3</small>
+      </span>
+      <span class="where">Рівень 2</span>
+    </div></header>
+    <div class="note"><div><b>Option 3: daily goal + hearts.</b> A goal of 3 problems a day; with the notebook from Level 2 each problem takes longer, so the number is a placeholder for the trial's daily dose. 5 hearts a day. <b>A heart goes only when an answer has to be shown after two wrong tries; hints she asks for never cost one.</b> With no hearts left, new problems wait until tomorrow, but repeats and solved problems can still be done. <b>Repeats</b> sit in the level strip (↻), styled like the rest. The strongest pressure of the three: it is the only option that can stop her for the day. Here she has solved 2 problems today and lost one heart earlier.</div></div>
+    <div class="home">
+      <main style="display:grid;gap:18px;align-content:start">
+        <section class="today">
+          <div class="today-top">
+            <div class="ring">
+              <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="track" cx="60" cy="60" r="52"/><circle class="fill" cx="60" cy="60" r="52" data-when="before" style="stroke-dashoffset:108.9"/><circle class="fill" cx="60" cy="60" r="52" data-when="after" style="stroke-dashoffset:0"/></svg>
+              <span class="ring-c"><span><b><span data-when="before">2</span><span data-when="after">3</span></b>з 3</span></span>
+            </div>
+            <div>
+              <p class="today-k">Мета на сьогодні</p>
+              <p class="today-t"><span data-when="before">Ще одна задача!</span><span data-when="after">Мету виконано!</span></p>
+              <p class="today-s"><span data-when="before">3 задачі на день.</span><span data-when="after">Можна ще, якщо хочеш.</span></p>
+            </div>
+          </div>
+          <div class="next">
+            <div><p class="next-k">Наступна</p><p class="next-t"><span data-when="before">Задача 10</span><span data-when="after">Задача 11</span></p><p class="nb-chip"><svg><use href="#i-notebook"/></svg>Знадобиться зошит</p></div>
+            <button class="btn btn-primary" type="button" data-go="problem" data-focus>Почати</button>
+          </div>
+        </section>
+        <section class="seq-card">
+          <h2>Рівень 2</h2>
+          <ol class="seq">
+            <li class="done">8</li>
+            <li class="done">9</li>
+            <li class="cur" data-when="before">10</li>
+            <li class="done" data-when="after">10</li>
+            <li data-when="before">11</li>
+            <li class="cur" data-when="after">11</li>
+            <li>12</li><li>13</li><li>14</li><li>15</li>
+            <li aria-label="Повтор задачі 8"><svg aria-hidden="true"><use href="#i-again"/></svg>8</li>
+            <li data-when="after" data-show="shown" aria-label="Повтор задачі 10"><svg aria-hidden="true"><use href="#i-again"/></svg>10</li>
+          </ol>
+          <p class="seq-p">Задачі зі стрілкою — повтори. Вони теж частина рівня.</p>
+        </section>
+      </main>
+      <aside class="side">
+        <section class="side-card">
+          <h2 class="side-h" style="color:var(--red-ink)">Сердечка</h2>
+          <div class="hearts" aria-label="Сердечка">
+            <svg class="hrt h1"><use href="#i-heart"/></svg><svg class="hrt h2"><use href="#i-heart"/></svg><svg class="hrt h3"><use href="#i-heart"/></svg><svg class="hrt h4"><use href="#i-heart"/></svg><svg class="hrt empty"><use href="#i-heart"/></svg>
+          </div>
+          <p class="side-p">Сердечко зникає, лише коли відповідь доводиться показати після двох помилок. <b>Підказки, які ти просиш, нічого не коштують.</b></p>
+          <p class="side-p">Коли сердечок немає, нові задачі чекають до завтра. Повтори й розв'язані задачі можна робити й тоді. Щоранку знову 5 сердечок.</p>
+        </section>
+        <section class="side-card">
+          <h2 class="side-h">Рівні</h2>
+          <ul class="lvls">
+            <li class="lv"><span>Рівень 1</span><span class="bar"><i style="--p:1"></i></span><span class="lv-n">7 з 7</span></li>
+            <li class="lv"><span>Рівень 2</span><span class="bar"><i data-when="before" style="--p:.25"></i><i data-when="after" style="--p:.375"></i></span><span class="lv-n"><span data-when="before">2 з 8</span><span data-when="after">3 з 8</span></span></li>
+            <li class="lv locked"><span>Рівень 3</span><span class="bar"></span><span class="lv-n"><svg aria-label="закрито"><use href="#i-lock"/></svg></span></li>
+            <li class="lv locked"><span>Рівень 4</span><span class="bar"></span><span class="lv-n"><svg aria-label="закрито"><use href="#i-lock"/></svg></span></li>
+          </ul>
+        </section>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ---------- handover (2.1) ---------- -->
+  <section class="screen" data-screen="handover" aria-label="Варіант 3, новий етап">
+    <p class="fallback-label">Варіант 3 · Сердечка · Новий етап (на задачі 2.1)</p>
+    <div class="note"><div><b>Handover as an unlock badge</b>: a new tool (the notebook) is "unlocked", with the hint rule said in hearts terms, since this is the option where a cost is most felt. Shown at 2.1, 2.5, 3.1, 4.1, 4.4 and 4.6; this is the 2.1 one.</div></div>
+    <div class="handover">
+      <div class="badge3" aria-hidden="true"><svg><use href="#i-notebook"/></svg></div>
+      <p class="ho-k">Новий етап · Рівень 2</p>
+      <h1 class="ho-title">Тепер дії і відповідь ти записуєш у зошит</h1>
+      <div class="split">
+        <div class="split-row"><h3><svg><use href="#i-phone"/></svg>Тут, як і раніше</h3><div class="stepchips"><span>Перекажи</span><span>Знайти</span><span>Відомо</span><span>Порівняння</span><span>Тип і схема</span><span>План</span></div></div>
+        <div class="split-row paper"><h3><svg><use href="#i-notebook"/></svg>У зошиті</h3><div class="stepchips"><span>Обчисли</span><span>Відповідь</span></div><p>Результат кожної дії вводиш сюди. Потім звіряєш свій запис зі зразком.</p></div>
+      </div>
+      <p class="ho3-hint"><svg aria-hidden="true"><use href="#i-heart"/></svg>Кнопка «Підказка» сердечок не забирає.</p>
+      <p class="ho-tip">Поклади поруч зошит і ручку.</p>
+    </div>
+    <footer class="bottom"><div class="bottom-in"><button class="btn btn-primary" type="button" data-go="problem">Почати</button></div></footer>
+  </section>
+
+  <!-- ---------- problem stub ---------- -->
+  <section class="screen" data-screen="problem" aria-label="Варіант 3, задача">
+    <p class="fallback-label">Варіант 3 · Сердечка · Задача (кроки пропущено)</p>
+    <header class="stub-top"><div class="stub-top-in">
+      <button class="x" type="button" data-go="home" aria-label="Вийти"><svg><use href="#i-close"/></svg></button>
+      <span class="segs" aria-hidden="true"><i class="cur"></i><i></i><i></i><i></i><i></i><i class="pp"></i><i class="pp"></i></span>
+      <span class="stat stat-heart"><svg><use href="#i-heart"/></svg><b>4</b></span>
+    </div></header>
+    <div class="note"><div>The problem's steps are skipped here. In option 3 the hearts stay in the top bar while she solves, so she sees one go when an answer is shown.</div></div>
+    <div class="stub">
+      <p class="end-kicker" style="text-align:left">Задача 10</p>
+      <p class="problem-text">Хлопчик пройшов 3000&nbsp;м за годину. Яку відстань він пройде за 20&nbsp;хвилин?</p>
+      <div class="split">
+        <div class="split-row"><h3><svg><use href="#i-phone"/></svg>Тут</h3><div class="stepchips"><span>Перекажи</span><span>Знайти</span><span>Відомо</span><span>Тип і схема</span><span>План</span></div></div>
+        <div class="split-row paper"><h3><svg><use href="#i-notebook"/></svg>У зошиті</h3><div class="stepchips"><span>Обчисли</span><span>Відповідь</span></div></div>
+      </div>
+      <p class="stub-skip">У цьому прикладі кроки пропущено.</p>
+    </div>
+    <footer class="bottom"><div class="bottom-in"><button class="btn btn-primary" type="button" data-go="end">Завершити задачу</button></div></footer>
+  </section>
+
+  <!-- ---------- end of problem 10 ---------- -->
+  <section class="screen" data-screen="end" aria-label="Варіант 3, кінець задачі">
+    <p class="fallback-label">Варіант 3 · Сердечка · Кінець задачі 10</p>
+    <div class="note"><div>The daily goal fills first, then the hearts, then the «Розбір». With hints only, the hearts stay and the screen says hints don't take them. With a shown result, a heart goes and the problem comes back at the end of the level.</div></div>
+    <div class="end">
+      <div class="end-result r3">
+        <div class="ring" aria-hidden="true">
+          <svg viewBox="0 0 120 120"><circle class="track" cx="60" cy="60" r="52"/><circle class="fill" cx="60" cy="60" r="52" style="stroke-dashoffset:0"/></svg>
+          <span class="ring-c"><span><b>3</b>з 3</span></span>
+        </div>
+        <h1 class="end-title">Мету на сьогодні виконано!</h1>
+        <p class="end-sub">Задачу розв'язано. Сьогодні вже три.</p>
+        <div class="hearts-block">
+          <div class="hearts" aria-hidden="true">
+            <svg class="hrt h1"><use href="#i-heart"/></svg><svg class="hrt h2"><use href="#i-heart"/></svg><svg class="hrt h3"><use href="#i-heart"/></svg><svg class="hrt h4"><use href="#i-heart"/></svg><svg class="hrt empty"><use href="#i-heart"/></svg>
+          </div>
+          <p data-show="clean">Сердечка цілі: 4 з 5.</p>
+          <p data-show="hints">Сердечка цілі: 4 з 5. Підказки їх не забирають.</p>
+          <p class="lost-msg" data-show="shown">Мінус одне сердечко: результат 2-ї дії довелося показати. Залишилося 3.</p>
+        </div>
+        <p class="again-row" data-show="shown"><svg aria-hidden="true"><use href="#i-again"/></svg>Ця задача ще раз з'явиться в кінці рівня 2.</p>
+      </div>
+
+      <section class="rozbir" aria-labelledby="rz3">
+        <h2 class="rz-title" id="rz3">Розбір</h2>
+        <div class="nb">
+          <div class="nb-top">
+            <div><p>За 1&nbsp;год (60&nbsp;хв) — 3000&nbsp;м</p><p>За 20&nbsp;хв —&nbsp;?&nbsp;м</p></div>
+            <table class="vt" aria-label="Схема: швидкість, час, відстань">
+              <tr><th></th><th>Швидкість</th><th>Час</th><th>Відстань</th></tr>
+              <tr><th>Відомо</th><td rowspan="2">однакова</td><td>60&nbsp;хв</td><td>3000&nbsp;м</td></tr>
+              <tr><th>Шукаємо</th><td>20&nbsp;хв</td><td>?</td></tr>
+            </table>
+          </div>
+          <p class="nb-h">Розв'язання</p>
+          <p>1&nbsp;год&nbsp;=&nbsp;60&nbsp;хв</p>
+          <p class="act">1) 3000 : 60 = 50 (м) — відстань, яку хлопчик проходить за 1&nbsp;хв;</p>
+          <p class="act">2) 50 · 20 = 1000 (м) — відстань, яку хлопчик пройде за 20&nbsp;хв.</p>
+          <p class="nb-ans">Відповідь: за 20&nbsp;хв хлопчик пройде 1000&nbsp;м.</p>
+        </div>
+        <h3 class="rz-h">Перевірка</h3>
+        <ul class="checks">
+          <li><svg><use href="#i-check"/></svg><span>1000&nbsp;м менше за 3000&nbsp;м: за 20&nbsp;хв він проходить менше, ніж за годину.</span></li>
+          <li><svg><use href="#i-check"/></svg><span>20&nbsp;хв уміщаються в годині 3&nbsp;рази, а 1000 · 3 = 3000&nbsp;м. Сходиться.</span></li>
+          <li><svg><use href="#i-check"/></svg><span>Відповідь у метрах, як і питали.</span></li>
+        </ul>
+        <div class="key"><p class="key-k">Головне</p><p>Година і хвилини — різні одиниці. Перш ніж рахувати, переведи: 1&nbsp;год&nbsp;=&nbsp;60&nbsp;хв.</p></div>
+        <h3 class="rz-h">Інший правильний план</h3>
+        <p class="rz-sub">Цю задачу можна розв'язати й так:</p>
+        <div class="nb">
+          <p>1&nbsp;год&nbsp;=&nbsp;60&nbsp;хв</p>
+          <p class="act">1) 60 : 20 = 3 (рази) — у стільки разів 20&nbsp;хв менше, ніж 1&nbsp;год;</p>
+          <p class="act">2) 3000 : 3 = 1000 (м) — відстань, яку хлопчик пройде за 20&nbsp;хв.</p>
+        </div>
+      </section>
+    </div>
+    <footer class="bottom"><div class="bottom-in"><button class="btn btn-primary" type="button" data-go="home">Далі</button></div></footer>
+  </section>
+
+  <!-- ---------- end of a paper problem (30) ---------- -->
+  <section class="screen" data-screen="endpaper" aria-label="Варіант 3, кінець задачі в зошиті">
+    <p class="fallback-label">Варіант 3 · Сердечка · Кінець задачі 30 (у зошиті)</p>
+    <div class="note"><div><b>End of a paper problem</b> (4.7, the triangle, solved entirely in the notebook). Hearts count only a shown final answer, never the self-checks or «Підказка» (which in 4.6–4.7 brings back the checklist card).</div></div>
+    <div class="end">
+      <div class="end-result r3">
+        <div class="ring" aria-hidden="true">
+          <svg viewBox="0 0 120 120"><circle class="track" cx="60" cy="60" r="52"/><circle class="fill" cx="60" cy="60" r="52" style="stroke-dashoffset:0"/></svg>
+          <span class="ring-c"><span><b>3</b>з 3</span></span>
+        </div>
+        <h1 class="end-title">Мету на сьогодні виконано!</h1>
+        <p class="end-sub">Задачу розв'язано в зошиті.</p>
+        <div class="hearts-block">
+          <div class="hearts" aria-hidden="true">
+            <svg class="hrt h1"><use href="#i-heart"/></svg><svg class="hrt h2"><use href="#i-heart"/></svg><svg class="hrt h3"><use href="#i-heart"/></svg><svg class="hrt h4"><use href="#i-heart"/></svg><svg class="hrt empty"><use href="#i-heart"/></svg>
+          </div>
+          <p data-show="clean">Сердечка цілі: 4 з 5.</p>
+          <p data-show="hints">Сердечка цілі: 4 з 5. Підказки їх не забирають.</p>
+          <p class="lost-msg" data-show="shown">Мінус одне сердечко: відповідь довелося показати. Залишилося 3.</p>
+        </div>
+        <p class="again-row" data-show="shown"><svg aria-hidden="true"><use href="#i-again"/></svg>Ця задача ще раз з'явиться в кінці рівня 4.</p>
+      </div>
+      <section class="rozbir paper-rozbir">
+        <h2 class="rz-title">Розбір</h2>
+        <p class="rz-lead">Поклади зошит поруч і звір кожну частину зі зразком. Ці питання для тебе: «Ні» нічого не забирає.</p>
+        <div class="typed">
+          <ul>
+            <li data-show="clean hints"><svg aria-hidden="true"><use href="#i-check"/></svg><span>Твоя відповідь: 37,7&nbsp;см<span data-show="hints"> (з другої спроби)</span></span></li>
+            <li class="shown-ans" data-show="shown"><svg aria-hidden="true"><use href="#i-info"/></svg><span>Правильна відповідь: 37,7&nbsp;см</span></li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg><span>Дій у тебе: 3. У зразку теж 3.</span></li>
+          </ul>
+        </div>
+
+        <div class="part">
+          <h3 class="part-h">Короткий запис</h3>
+          <div class="nb">
+            <p>AB — 8,4&nbsp;см</p>
+            <p>BC —&nbsp;?, на 3,7&nbsp;см більша, ніж AB</p>
+            <p>AC —&nbsp;?, на 5,1&nbsp;см більша, ніж BC</p>
+            <p>P —&nbsp;?</p>
+          </div>
+          <ul class="sc">
+            <li><span>Шукане записане зі знаком «?»: «P —&nbsp;?»?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
+            <li><span>Порівняння записані від шуканого: «BC —&nbsp;?, на 3,7&nbsp;см більша, ніж AB» і «AC —&nbsp;?, на 5,1&nbsp;см більша, ніж BC»?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
+            <li><span>Біля кожного числа є одиниця?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
+          </ul>
+        </div>
+
+        <div class="part">
+          <h3 class="part-h">Схема</h3>
+          <svg class="bars" viewBox="0 0 320 180" role="img" aria-label="Схема з відрізками: AB 8,4; BC на 3,7 більша; AC на 5,1 більша; периметр невідомий">
+            <text x="0" y="51">AB</text><text x="0" y="109">BC</text><text x="0" y="167">AC</text>
+            <rect class="base" x="36" y="36" width="100.8" height="20"/>
+            <rect class="base" x="36" y="94" width="100.8" height="20"/><rect class="extra" x="136.8" y="94" width="44.4" height="20"/>
+            <rect class="base" x="36" y="152" width="145.2" height="20"/><rect class="extra" x="181.2" y="152" width="61.2" height="20"/>
+            <line class="guide" x1="136.8" y1="36" x2="136.8" y2="172"/><line class="guide" x1="181.2" y1="94" x2="181.2" y2="172"/>
+            <text x="86.4" y="28" text-anchor="middle">8,4</text><text x="159" y="86" text-anchor="middle">3,7</text><text x="211.8" y="144" text-anchor="middle">5,1</text>
+            <text x="187" y="109">?</text><text x="248" y="167">?</text>
+            <path d="M268 36 q8 0 8 8 v56 l6 4 l-6 4 v56 q0 8 -8 8" fill="none" stroke="#555"/>
+            <text x="286" y="109">P ?</text>
+          </svg>
+          <ul class="sc">
+            <li><span>Схема того самого виду: відрізки?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
+            <li><span>«?» стоїть там, де шукане?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
+          </ul>
+        </div>
+
+        <div class="part">
+          <h3 class="part-h">Розв'язання</h3>
+          <div class="nb">
+            <p class="act">1) 8,4 + 3,7 = 12,1 (см) — довжина сторони BC;</p>
+            <p class="act">2) 12,1 + 5,1 = 17,2 (см) — довжина сторони AC;</p>
+            <p class="act">3) 8,4 + 12,1 + 17,2 = 37,7 (см) — периметр трикутника.</p>
+          </div>
+          <ul class="sc">
+            <li><span>Остання дія знаходить периметр трикутника?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
+            <li><span>Після кожної дії є пояснення?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
+          </ul>
+        </div>
+
+        <div class="part">
+          <h3 class="part-h">Відповідь</h3>
+          <div class="nb"><p class="nb-ans">Відповідь: периметр трикутника дорівнює 37,7&nbsp;см.</p></div>
+          <ul class="sc">
+            <li><span>Відповідь — повним реченням про периметр трикутника?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
+          </ul>
+        </div>
+
+        <div class="wrongat" data-show="shown">
+          <p>Де твій розв'язок пішов не так?</p>
+          <span class="yn pick"><button type="button" aria-pressed="false">Короткий запис</button><button type="button" aria-pressed="false">План</button><button type="button" aria-pressed="false">Обчислення</button></span>
+        </div>
+
+        <h3 class="rz-h">Перевірка</h3>
+        <ul class="checks">
+          <li><svg><use href="#i-check"/></svg><span>AC найдовша: 17,2&nbsp;см &gt; 12,1&nbsp;см &gt; 8,4&nbsp;см, як і на схемі.</span></li>
+          <li><svg><use href="#i-check"/></svg><span>AC − BC = 17,2 − 12,1 = 5,1&nbsp;см — як в умові.</span></li>
+          <li><svg><use href="#i-check"/></svg><span>Відповідь у сантиметрах.</span></li>
+        </ul>
+        <div class="key"><p class="key-k">Головне</p><p>«BC на 5,1&nbsp;см менша від AC» означає: AC більша за BC. Тому AC = BC + 5,1: у задачі слово «менша», а дія — додавання. Щоразу питай себе: шукане більше чи менше за дане?</p></div>
+      </section>
+    </div>
+    <footer class="bottom"><div class="bottom-in"><span class="sc-count">Перевірено: <b>0</b> з 8</span><button class="btn btn-primary" type="button" data-go="home">Далі</button></div></footer>
+  </section>
+</div>
+
+
+<script>
+(function () {
+  document.documentElement.classList.add("js");
+  var body = document.body;
+  var S = { v: "1", screen: "home", outcome: "hints", notes: false };
+  var after = {};
+  function all(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
+  function variant() { return document.querySelector('.variant[data-variant="' + S.v + '"]'); }
+  function press(sel, attr, val) { all(sel).forEach(function (b) { b.setAttribute("aria-pressed", String(b.getAttribute(attr) === val)); }); }
+
+  function countChecks(screen) {
+    var items = all(".sc li", screen);
+    var done = items.filter(function (li) { return li.querySelector('[aria-pressed="true"]'); }).length;
+    var out = screen.querySelector(".sc-count b");
+    if (out) out.textContent = String(done);
+  }
+  function clearChecks() {
+    all(".paper-rozbir [aria-pressed]").forEach(function (b) { b.setAttribute("aria-pressed", "false"); });
+    all(".sc li.is-no").forEach(function (li) { li.classList.remove("is-no"); });
+    all('.screen[data-screen="endpaper"]').forEach(countChecks);
+  }
+
+  function render(scroll) {
+    all(".variant").forEach(function (v) { v.hidden = v.dataset.variant !== S.v; });
+    var V = variant();
+    all(".screen", V).forEach(function (s) { s.hidden = s.dataset.screen !== S.screen; });
+    all(".variant").forEach(function (v) { v.classList.toggle("is-after", !!after[v.dataset.variant]); });
+    body.dataset.outcome = S.outcome;
+    body.classList.toggle("notes-on", S.notes);
+    press("[data-v]", "data-v", S.v);
+    press("[data-set-screen]", "data-set-screen", S.screen);
+    press("[data-set-outcome]", "data-set-outcome", S.outcome);
+    if (scroll === false) return;
+    window.scrollTo(0, 0);
+    if (S.screen === "home") {
+      var cur = all('.screen[data-screen="home"] [data-focus]', V).filter(function (e) { return e.offsetParent !== null; })[0];
+      if (cur) {
+        var r = cur.getBoundingClientRect();
+        if (r.bottom > window.innerHeight - 24) window.scrollTo(0, r.top + window.scrollY - window.innerHeight / 2 + r.height / 2);
+      }
+    }
+  }
+
+  document.addEventListener("click", function (e) {
+    var yn = e.target.closest(".paper-rozbir .yn button");
+    if (yn) {
+      var group = yn.parentNode;
+      all("button", group).forEach(function (b) { b.setAttribute("aria-pressed", String(b === yn)); });
+      var li = yn.closest(".sc li");
+      if (li) { li.classList.toggle("is-no", yn.dataset.a === "n"); countChecks(li.closest(".screen")); }
+      return;
+    }
+    var t = e.target.closest("[data-go], [data-v], [data-set-screen], [data-set-outcome], #gear, #reset");
+    if (!t) return;
+    if (t.hasAttribute("data-go")) {
+      if (S.screen === "end") after[S.v] = true;
+      S.screen = t.getAttribute("data-go");
+    } else if (t.hasAttribute("data-v")) {
+      S.v = t.getAttribute("data-v"); S.screen = "home";
+    } else if (t.hasAttribute("data-set-screen")) {
+      S.screen = t.getAttribute("data-set-screen");
+    } else if (t.hasAttribute("data-set-outcome")) {
+      S.outcome = t.getAttribute("data-set-outcome"); render(false); return;
+    } else if (t.id === "gear") {
+      var p = document.getElementById("mockpanel");
+      p.hidden = !p.hidden; t.setAttribute("aria-expanded", String(!p.hidden)); return;
+    } else if (t.id === "reset") {
+      after = {}; S.screen = "home"; S.outcome = "hints"; clearChecks();
+    }
+    render();
+  });
+  document.getElementById("notes-toggle").addEventListener("change", function (e) { S.notes = e.target.checked; render(false); });
+  render();
+})();
+</script>
+</body>
+</html>
