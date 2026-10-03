@@ -1,0 +1,803 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Мок: одна задача з підказками</title>
+<style>
+  :root { --green:#58cc02; --green-d:#46a302; --red:#ff4b4b; --red-bg:#ffdfe0; --ok-bg:#d7ffb8; --blue:#1cb0f6; --blue-bg:#ddf4ff; --ink:#3c3c3c; --muted:#777; --line:#e5e5e5; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 17px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink); background: #f7f7f7; padding-bottom: 170px; }
+  header { position: sticky; top: 0; z-index: 5; background: #fff; border-bottom: 1px solid var(--line); padding: 8px 12px; }
+  .hrow { max-width: 640px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 14px; }
+  .hrow button { font: inherit; padding: 4px 10px; border: 2px solid var(--line); border-radius: 10px; background: #fff; cursor: pointer; }
+  .hrow button.on { border-color: var(--blue); background: var(--blue-bg); }
+  .hrow label { margin-left: auto; color: var(--muted); }
+  #progress { max-width: 640px; margin: 8px auto 0; }
+  .segs { display: flex; gap: 4px; }
+  .seg { flex: 1; height: 10px; border-radius: 5px; background: var(--line); }
+  .seg.done { background: var(--green); }
+  .seg.cur { background: var(--blue); }
+  .seg.skip { background: repeating-linear-gradient(45deg, #eee, #eee 3px, #fff 3px, #fff 6px); }
+  .glabel { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  main { max-width: 640px; margin: 0 auto; padding: 12px; }
+  .card { background: #fff; border: 2px solid var(--line); border-radius: 16px; padding: 14px; margin-bottom: 12px; }
+  #problem { font-size: 19px; line-height: 1.6; }
+  .tok.tapq { cursor: pointer; }
+  .tok.tappable { cursor: pointer; border-bottom: 3px dotted var(--blue); }
+  .tok.numact { background: #fff3b0; border-radius: 4px; }
+  .tok.numdone { background: var(--ok-bg); border-radius: 4px; }
+  .tok.qhl { background: #fff3b0; }
+  .tok.tapsel { background: var(--red-bg); }
+  .tok.relhl { background: #ffe0f0; }
+  .cap { font-size: 13px; color: var(--muted); margin: 10px 0 4px; text-transform: uppercase; letter-spacing: .04em; }
+  .cap:first-child { margin-top: 0; }
+  .notebook { font-family: "Courier New", ui-monospace, monospace; font-size: 15px; white-space: pre-wrap; padding: 8px 10px; border-radius: 8px;
+    background-color: #fff; background-image: linear-gradient(#e3eafc 1px, transparent 1px), linear-gradient(90deg, #e3eafc 1px, transparent 1px); background-size: 18px 18px; }
+  h2 { font-size: 20px; margin: 0 0 6px; }
+  .badge { display: inline-block; font-size: 12px; font-weight: 700; color: #fff; background: #ce82ff; border-radius: 8px; padding: 1px 8px; vertical-align: middle; margin-left: 6px; }
+  .prompt { margin: 4px 0 10px; }
+  .quote { font-size: 19px; background: #ffe0f0; border-radius: 10px; padding: 8px 12px; margin: 6px 0 10px; }
+  .opt { display: block; width: 100%; text-align: left; padding: 12px 14px; margin: 8px 0; border: 2px solid var(--line); border-bottom-width: 4px; border-radius: 14px; background: #fff; font: inherit; color: inherit; cursor: pointer; }
+  .opt.sel { border-color: var(--blue); background: var(--blue-bg); }
+  .opt.good { border-color: var(--green); background: var(--ok-bg); }
+  .opt.bad { border-color: var(--red); background: var(--red-bg); }
+  .row2 { display: flex; gap: 10px; } .row2 .opt { text-align: center; font-size: 20px; font-weight: 700; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0; }
+  .chip { font: inherit; min-width: 48px; padding: 8px 12px; border: 2px solid var(--line); border-bottom-width: 4px; border-radius: 12px; background: #fff; cursor: pointer; }
+  .chip.op { font-weight: 700; min-width: 44px; }
+  .chip.type { font-size: 14px; padding: 6px 10px; }
+  .chip.sel { border-color: var(--blue); background: var(--blue-bg); }
+  .rel { border: 2px solid var(--line); border-radius: 12px; padding: 8px 10px; margin: 8px 0; }
+  .rel.wrong { border-color: var(--red); background: var(--red-bg); }
+  .rel.good { border-color: var(--green); }
+  .reltext { font-weight: 600; margin-bottom: 4px; }
+  .planlist .planslot { display: block; width: 100%; text-align: left; font: inherit; font-family: "Courier New", ui-monospace, monospace; padding: 10px 12px; margin: 6px 0; border: 2px dashed #bbb; border-radius: 12px; background: #fafafa; cursor: pointer; color: inherit; }
+  .planlist .planslot.filled { border-style: solid; border-color: var(--blue); background: var(--blue-bg); }
+  .planlist .planslot.good { border-color: var(--green); background: var(--ok-bg); }
+  .exprline { font-family: "Courier New", ui-monospace, monospace; font-size: 17px; padding: 10px; border-radius: 10px; background: #fafafa; border: 2px solid var(--line); }
+  .exprline .expr, .exprline .res { background: var(--blue-bg); border-radius: 6px; padding: 0 4px; }
+  .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-width: 320px; }
+  .key { font: inherit; font-size: 22px; font-weight: 700; padding: 12px 0; border: 2px solid var(--line); border-bottom-width: 4px; border-radius: 14px; background: #fff; cursor: pointer; }
+  svg.diag { width: 100%; max-width: 420px; display: block; font: 14px system-ui, sans-serif; }
+  svg.diag .base { fill: #cfe8ff; stroke: #1899d6; }
+  svg.diag .extra { fill: #ffd8a8; stroke: #e8890c; }
+  svg.diag .guide { stroke: #999; stroke-dasharray: 3 3; }
+  svg.diag .slot rect { fill: #fff; stroke: #999; stroke-dasharray: 4 3; }
+  svg.diag .slot.filled rect { stroke: var(--blue); stroke-dasharray: none; }
+  svg.diag .slot.sel rect { stroke: var(--blue); stroke-width: 3; }
+  svg.diag .slot.wrong rect { stroke: var(--red); stroke-width: 3; stroke-dasharray: none; fill: var(--red-bg); }
+  svg.diag [data-slot] { cursor: pointer; }
+  table.vt { border-collapse: collapse; width: 100%; font-size: 15px; }
+  table.vt th, table.vt td { border: 1.5px solid #bbb; padding: 6px; text-align: center; }
+  table.vt th { background: #f3f3f3; font-weight: 600; }
+  table.vt .slot { font: inherit; min-width: 70px; min-height: 34px; border: 2px dashed #999; border-radius: 8px; background: #fff; cursor: pointer; }
+  table.vt .slot.filled { border: 2px solid var(--blue); }
+  table.vt .slot.sel { border: 3px solid var(--blue); }
+  table.vt .slot.wrong { border: 3px solid var(--red); background: var(--red-bg); }
+  ul.checks { list-style: none; padding: 0; margin: 6px 0; } ul.checks li { margin: 6px 0; }
+  .key-idea { background: #fff3b0; border-radius: 12px; padding: 10px 12px; margin: 10px 0; font-weight: 600; }
+  .note { background: #fffbe6; border: 1px dashed #d9b400; border-radius: 12px; padding: 10px 12px; font-size: 14px; color: #5a4a00; margin-bottom: 12px; }
+  .note button { font: inherit; font-size: 13px; margin-top: 8px; padding: 4px 10px; border-radius: 8px; border: 1px solid #d9b400; background: #fff; cursor: pointer; }
+  body.nonotes .note { display: none; }
+  details.intro { font-size: 14px; }
+  footer { position: fixed; bottom: 0; left: 0; right: 0; z-index: 5; background: #fff; border-top: 2px solid var(--line); padding: 10px 12px 14px; }
+  footer.ok { background: var(--ok-bg); } footer.bad { background: var(--red-bg); } footer.info { background: var(--blue-bg); }
+  #feedback { max-width: 640px; margin: 0 auto 8px; min-height: 1.4em; font-weight: 600; }
+  footer.ok #feedback { color: #2b7a00; } footer.bad #feedback { color: #c00; }
+  #main { display: block; width: 100%; max-width: 640px; margin: 0 auto; padding: 14px; font: inherit; font-size: 18px; font-weight: 800; letter-spacing: .03em; text-transform: uppercase;
+    border: 0; border-radius: 14px; background: var(--green); color: #fff; box-shadow: 0 4px 0 var(--green-d); cursor: pointer; }
+  footer.bad #main { background: var(--red); box-shadow: 0 4px 0 #c00; }
+</style>
+</head>
+<body>
+<header>
+  <div class="hrow">
+    <span>Задача:</span>
+    <button data-p="boy">Хлопчик (2.3)</button>
+    <button data-p="tri">Трикутник (4.7)</button>
+    <label><input type="checkbox" id="notes" checked> design notes</label>
+  </div>
+  <div id="progress"></div>
+</header>
+<main>
+  <div class="note">
+    <details class="intro"><summary><b>What this mock is</b> (for the parent)</summary>
+      <p>A rough, clickable draft for the ticket <i>What does one guided problem look like, step by step?</i> It isn't the PoC: no visual design, no game layer. Every step here is fully guided; how the guidance fades is the next ticket.</p>
+      <p><b>Wrong answers:</b> the first gets a hint that points back at the text. The second shows the right answer with the reason, and she carries on. No hearts or XP: that's the game-mechanics ticket.</p>
+      <p><b>Decided with the parent, 2026-10-03:</b> every default named in the yellow notes was accepted, except Estimate, which was dropped and is no longer in the mock. The record is <a href="guided-flow.md">guided-flow.md</a>.</p>
+      <p>Yellow boxes are design notes. Each one names the open decision for its screen in bold. "Show the answer" is a shortcut for skimming, not part of the app.</p>
+    </details>
+  </div>
+  <section id="problem" class="card"></section>
+  <section id="record" class="card"></section>
+  <section id="task" class="card"></section>
+  <div id="note" class="note"></div>
+</main>
+<footer>
+  <div id="feedback"></div>
+  <button id="main">Перевірити</button>
+</footer>
+<script>
+const TYPES = [
+  { id: "na", t: "На … більше / менше" },
+  { id: "raz", t: "У … разів більше / менше" },
+  { id: "parts", t: "Частини і ціле" },
+  { id: "frac", t: "Дріб від числа" },
+  { id: "tri", t: "Три величини" },
+  { id: "move", t: "Зближення / віддалення" },
+];
+const GROUPS = ["Перекажи", "Знайти", "Відомо", "Порівняння", "Тип і схема", "План", "Обчисли", "Відповідь", "Розбір"];
+const OPS = ["+", "−", "·", ":"];
+
+const NOTE = {
+  retell: "<b>Decision: keep a retell step?</b> One tap that catches a wrong picture of the whole problem before any numbers are touched. It costs one screen per problem.",
+  tapq: "She finds the question by tapping it in the text. The next screen asks exactly what is unknown, and in which unit. Together they write the «?» line of the short record. She taps; she never types.",
+  given: "She taps each number and picks what it means from a menu of three. Each right pick writes one line of the short record, which her teacher requires, so by the end of this step the short record on screen is what she would write on paper. The wrong options are the usual misreadings.",
+  decode: "<b>Asked for every comparison, plain or inverted</b>, so the step itself never signals 'this one is the trap'. Two taps: who is bigger (her primary school's own self-question, «Шукане більше чи менше за дане?»), then the sentence said again starting from the unknown. The new sentence replaces the line in the short record, which is how the school decodes непряма форма on paper. Problems with no comparison, like the walking boy, skip this step.",
+  why: "<b>Decision: how many «Чому?» prompts, and where?</b> Default: at most one per problem, picked from a menu, at its key idea: the decode when there's a comparison, otherwise the plan. In one meta-analysis, adding these prompts to worked examples made the examples help less, so they stay rare.",
+  types: "She names the type of each relation, from the six. Here the relations are listed for her; finding them herself is something fading could add later.",
+  diagram: "<b>Decision: which diagram for each type?</b> Default, using the school's own diagrams: на and у разів get segment bars from one left edge (схема з відрізками); частини і ціле and дріб від числа get one segment split into parts under a brace; три величини and зближення get the швидкість–час–відстань (or ціна–кількість–вартість) table. The diagram is pre-drawn and she places the given numbers. A problem that mixes families, such as a purchase plus change, would show two diagrams.",
+  plan: "The plan is the list of step explanations: the text she writes after each dash. She puts the cards in order; one card is a distractor. The number of slots is itself a hint, which fading can remove. A wrong order gets feedback that names the missing step. <b>Decision: accept every valid plan, or one fixed plan per problem?</b> This mock accepts both plans for the walking boy (per minute, or «у 3 рази»). Computing follows the plan she picked, and the review shows the other one.",
+  compute: "<b>Decision: who does the arithmetic?</b> Default: she does, on scratch paper if she likes, and types the result on the on-screen keypad. She builds the action from number chips and a sign, so a wrong action (a plan or decode mistake) and a wrong result (an arithmetic slip) are told apart. A slip gets «Дію складено правильно. Перевір обчислення.» and is logged separately. Each step fills its line of «Розв'язання» above.",
+  answer: "A full sentence, as her teacher wants. She picks one of three. The wrong ones are 'stopped a step early' and 'true, but doesn't answer the question': the two usual ways of not answering what was asked.",
+  review: "Closing screen. The full notebook write-up stays above; here she sees the check against the estimate and the condition, the key idea in one sentence, and the other valid plan if there is one. The mistakes list is only in the mock: whether the PoC logs attempts is decided with the trial.",
+};
+
+const PROBLEMS = {
+  boy: {
+    tokens: [
+      { t: "Хлопчик пройшов " },
+      { t: "3000 м", id: "n1", num: true },
+      { t: " за годину. " },
+      { t: "Яку відстань він пройде за ", q: true },
+      { t: "20 хвилин", id: "n2", num: true, q: true },
+      { t: "?", q: true },
+    ],
+    recordOrder: ["l1", "l2"],
+    solPre: ["1 год = 60 хв"],
+    numbers: ["3000", "60", "20"],
+    cards: [
+      { id: "perMin", t: "відстань, яку хлопчик проходить за 1 хв" },
+      { id: "x", t: "відстань, яку хлопчик пройде за 1 год 20 хв", why: "Картка «за 1 год 20 хв» зайва: хлопчик не йде годину і ще 20 хвилин. Питають тільки про 20 хв." },
+      { id: "asked", t: "відстань, яку хлопчик пройде за 20 хв" },
+      { id: "times", t: "у скільки разів 20 хв менше, ніж 1 год" },
+    ],
+    askedCard: "asked",
+    orderHint: "Спершу знайди те, що можна знайти одразу з відомих чисел. Відстань за 20 хв — це вже останній крок.",
+    plans: [
+      { cards: ["perMin", "asked"], steps: [
+        { terms: ["3000", "60"], op: ":", r: "50", u: "м", expl: "відстань, яку хлопчик проходить за 1 хв", hint: "За 60 хв — 3000 м. Як дізнатися, скільки за 1 хв?" },
+        { terms: ["50", "20"], op: "·", r: "1000", u: "м", expl: "відстань, яку хлопчик пройде за 20 хв", hint: "За 1 хв — 50 м. А за 20 хв?" },
+      ] },
+      { cards: ["times", "asked"], steps: [
+        { terms: ["60", "20"], op: ":", r: "3", u: "рази", expl: "у стільки разів 20 хв менше, ніж 1 год", hint: "Порівнюємо 60 хв і 20 хв: у скільки разів одне більше за інше?" },
+        { terms: ["3000", "3"], op: ":", r: "1000", u: "м", expl: "відстань, яку хлопчик пройде за 20 хв", hint: "Час у 3 рази менший, то й відстань у 3 рази менша." },
+      ] },
+    ],
+    steps: [
+      { g: "Перекажи", kind: "choice", title: "Про що ця задача?", prompt: "Вибери найкращий переказ.", note: NOTE.retell,
+        options: [
+          { t: "Хлопчик пройшов 3000 м. Треба дізнатися, скільки хвилин він ішов.", why: "Перечитай останнє речення: що треба дізнатися — відстань чи час?" },
+          { t: "Хлопчик іде з однаковою швидкістю. Відомо, скільки він проходить за годину. Треба дізнатися, скільки він пройде за 20 хвилин.", ok: true },
+          { t: "Хлопчик ішов годину, а потім ще 20 хвилин. Треба дізнатися, скільки він пройшов разом.", why: "Він не йшов годину і ще 20 хвилин. Питають, скільки він пройде за 20 хвилин." },
+        ], okMsg: "Так, саме про це задача." },
+      { g: "Знайти", kind: "tapq", title: "Що треба знайти?", prompt: "Торкнись у задачі місця, де питають, що треба знайти.", note: NOTE.tapq,
+        hint: "Це те, що вже відомо. Знайди місце, де в задачі питають.", okMsg: "Так, це питання задачі." },
+      { g: "Знайти", kind: "choice", title: "Що саме шукаємо?", prompt: "«Яку відстань він пройде за 20 хвилин?»", note: "She picks the unknown with its unit. The wrong options are the problem's other two quantities.",
+        options: [
+          { t: "Швидкість хлопчика", why: "Питають «яку відстань», а не швидкість." },
+          { t: "Час, за який хлопчик пройде 3000 м", why: "Час уже відомий: 20 хвилин. Питають відстань." },
+          { t: "Відстань, яку хлопчик пройде за 20 хв, у метрах", ok: true },
+        ], set: { l2: "За 20 хв — ? м" }, okMsg: "Так. Записуємо це в короткий запис зі знаком «?»." },
+      { g: "Відомо", kind: "given", title: "Що відомо?", note: NOTE.given + " Here: 3000 m taken as the 20-minute distance.",
+        items: [
+          { tok: "n1", set: { l1: "За 1 год — 3000 м" }, options: [
+            { t: "Стільки метрів хлопчик проходить за 1 годину", ok: true },
+            { t: "Стільки метрів хлопчик пройде за 20 хвилин", why: "Ні: 3000 м — це за годину. Відстань за 20 хвилин ми шукаємо." },
+            { t: "Стільки хвилин ішов хлопчик", why: "Подивись на одиницю: «м» — це метри, а не хвилини." },
+          ] },
+          { tok: "n2", set: { l2: "За 20 хв — ? м" }, options: [
+            { t: "Час, за який хлопчик пройшов 3000 м", why: "3000 м він пройшов за годину, а не за 20 хвилин." },
+            { t: "Час, за який треба знайти відстань", ok: true },
+            { t: "Швидкість хлопчика", why: "«Хвилин» — це час, а не швидкість." },
+          ] },
+        ] },
+      { g: "Відомо", kind: "choice", title: "Чи все в однакових одиницях?", prompt: "Подивись на короткий запис: година і хвилини. Чи можна рахувати з ними одразу?",
+        note: "In a fully guided problem, hidden information gets its own question. The answer rewrites the first line as «За 1 год (60 хв) — 3000 м», as in the school write-up.",
+        options: [
+          { t: "Так, можна рахувати одразу", why: "Година і хвилина — різні одиниці. Скільки хвилин в одній годині?" },
+          { t: "Ні. Спершу переведу: 1 год = 60 хв", ok: true },
+        ], set: { l1: "За 1 год (60 хв) — 3000 м" }, okMsg: "Так. Тепер обидва часи в хвилинах." },
+      { g: "Тип і схема", kind: "types", title: "Який це тип?", prompt: "Назви тип кожного зв'язку в задачі.",
+        note: NOTE.types + " With the other plan (60 : 20 = 3), the first relation would be «У … разів» instead.",
+        items: [
+          { t: "За 60 хв хлопчик проходить 3000 м", ok: "tri", hint: "Тут є швидкість, час і відстань." },
+          { t: "За 20 хв з тією самою швидкістю він пройде ? м", ok: "tri", hint: "Знову швидкість, час і відстань." },
+        ] },
+      { g: "Тип і схема", kind: "diagram", d: "table", title: "Заповни таблицю", prompt: "Торкнись клітинки, потім числа.",
+        note: NOTE.diagram + " The table makes the hidden 'same speed' visible, and the «1 год» chip tests the unit change.",
+        slots: { r1t: "60 хв", r1d: "3000 м", r2t: "20 хв" }, chips: ["3000 м", "1 год", "60 хв", "20 хв"],
+        hint: "Подивись на короткий запис. Час пиши в хвилинах в обох рядках: 1 год = 60 хв.", okMsg: "Так. Швидкість однакова, змінюється тільки час." },
+      { g: "План", kind: "plan", title: "Склади план", note: NOTE.plan },
+      { g: "План", kind: "choice", why: true, title: "Чому?", prompt: "Чому перший крок плану саме такий?", note: NOTE.why,
+        options: [
+          { t: "Бо в задачі спочатку написано 3000 м", why: "Порядок у тексті не важливий. Важливо, що можна знайти з того, що вже відомо." },
+          { t: "Бо ділити треба раніше, ніж множити", why: "Порядок кроків залежить від того, що вже відомо, а не від знака дії." },
+          { t: "Бо його можна знайти одразу з відомих чисел, а без нього не знайти відстань за 20 хв", ok: true },
+        ], okMsg: "Так. Кожен крок використовує тільки те, що вже відомо." },
+      { g: "Обчисли", kind: "compute", note: NOTE.compute },
+      { g: "Відповідь", kind: "choice", title: "Відповідь", prompt: "Яке речення відповідає на питання задачі?", note: NOTE.answer,
+        options: [
+          { t: "За 1 хв хлопчик проходить 50 м.", why: "Це правда, але питали інше. Перечитай питання задачі." },
+          { t: "За 20 хв хлопчик пройде 1000 м.", ok: true },
+          { t: "За 20 хв хлопчик пройде 3000 м.", why: "3000 м — це за цілу годину." },
+        ], answer: "Відповідь: за 20 хв хлопчик пройде 1000 м.", okMsg: "Так. Записуємо відповідь повним реченням." },
+      { g: "Розбір", kind: "review", note: NOTE.review,
+        checks: ["1000 м менше за 3000 м: за 20 хв він проходить менше, ніж за годину.", "20 хв уміщаються в годині 3 рази, а 1000 · 3 = 3000 м. Сходиться.", "Відповідь у метрах, як і питали."],
+        key: "Головне в цій задачі: година і хвилини — різні одиниці. Перш ніж рахувати, переведи: 1 год = 60 хв." },
+    ],
+  },
+
+  tri: {
+    tokens: [
+      { t: "Сторона AB трикутника ABC дорівнює " },
+      { t: "8,4 см", id: "n1", num: true },
+      { t: ". " },
+      { t: "Сторона BC на ", rel: ["r1"] },
+      { t: "3,7 см", id: "n2", num: true, rel: ["r1"] },
+      { t: " більша за AB", rel: ["r1"] },
+      { t: ", але на ", rel: ["r2"] },
+      { t: "5,1 см", id: "n3", num: true, rel: ["r2"] },
+      { t: " менша від AC", rel: ["r2"] },
+      { t: ". " },
+      { t: "Знайди периметр трикутника.", q: true },
+    ],
+    recordOrder: ["l1", "l2", "l3", "l4"],
+    numbers: ["8,4", "3,7", "5,1"],
+    cards: [
+      { id: "ac", t: "довжина сторони AC" },
+      { id: "p", t: "периметр трикутника" },
+      { id: "x", t: "на скільки AC довша за AB", why: "Це не потрібно: для периметра треба довжини сторін, а не різниці." },
+      { id: "bc", t: "довжина сторони BC" },
+    ],
+    askedCard: "p",
+    orderHint: "Щоб знайти AC, треба вже знати BC: AC порівнюють саме з BC.",
+    plans: [
+      { cards: ["bc", "ac", "p"], steps: [
+        { terms: ["8,4", "3,7"], op: "+", r: "12,1", u: "см", expl: "довжина сторони BC", hint: "Подивись на короткий запис: BC на 3,7 см більша, ніж AB." },
+        { terms: ["12,1", "5,1"], op: "+", r: "17,2", u: "см", expl: "довжина сторони AC", hint: "Подивись на короткий запис: AC на 5,1 см більша, ніж BC." },
+        { terms: ["8,4", "12,1", "17,2"], op: "+", r: "37,7", u: "см", expl: "периметр трикутника", hint: "Периметр — сума всіх трьох сторін." },
+      ] },
+    ],
+    steps: [
+      { g: "Перекажи", kind: "choice", title: "Про що ця задача?", prompt: "Вибери найкращий переказ.",
+        note: NOTE.retell + " Here the first option is the classic misreading 'the three numbers are the sides'. It gives 17,2, the classic trap answer.",
+        options: [
+          { t: "Відомі всі три сторони трикутника: 8,4 см, 3,7 см і 5,1 см. Треба знайти периметр.", why: "3,7 см і 5,1 см — не сторони. Це на скільки одна сторона більша чи менша за іншу." },
+          { t: "Відома тільки сторона AB. Про BC сказано, на скільки вона більша за AB і менша від AC. Треба знайти периметр.", ok: true },
+          { t: "Відома сторона AB. Треба знайти сторону AC.", why: "Перечитай останнє речення: що треба знайти?" },
+        ], okMsg: "Так, саме про це задача." },
+      { g: "Знайти", kind: "tapq", title: "Що треба знайти?", prompt: "Торкнись у задачі місця, де сказано, що треба знайти.", note: NOTE.tapq,
+        hint: "Це те, що вже відомо. Знайди місце, де сказано, що треба знайти.", okMsg: "Так, це питання задачі." },
+      { g: "Знайти", kind: "choice", title: "Що треба знати?", prompt: "«Знайди периметр трикутника.» Що треба знати, щоб знайти периметр?",
+        note: "«Знайди периметр» hides a relation: the perimeter is the sum of all three sides. This screen makes it explicit.",
+        options: [
+          { t: "Тільки сторони BC і AC", why: "Периметр — сума всіх сторін. AB теж входить." },
+          { t: "Довжини всіх трьох сторін: AB, BC і AC", ok: true },
+          { t: "Тільки найдовшу сторону", why: "Периметр — сума всіх сторін, а не одна сторона." },
+        ], set: { l4: "P — ?" }, okMsg: "Так. Периметр — сума трьох сторін. Записуємо: P — ?" },
+      { g: "Відомо", kind: "given", title: "Що відомо?", note: NOTE.given + " Here: 3,7 cm taken as the length of BC.",
+        items: [
+          { tok: "n1", set: { l1: "AB — 8,4 см" }, options: [
+            { t: "Периметр трикутника", why: "Периметр ми шукаємо. 8,4 см — це одна сторона. Яка?" },
+            { t: "Довжина сторони AB", ok: true },
+            { t: "Довжина сторони BC", why: "Перечитай перше речення: яка сторона дорівнює 8,4 см?" },
+          ] },
+          { tok: "n2", set: { l2: "BC — ?, на 3,7 см більша, ніж AB" }, options: [
+            { t: "Довжина сторони BC", why: "«BC на 3,7 см більша» — 3,7 см не довжина BC, а на скільки BC довша за AB." },
+            { t: "На скільки BC більша за AB", ok: true },
+            { t: "На скільки AB більша за BC", why: "Перечитай: «BC на 3,7 см більша за AB». Хто більший?" },
+          ] },
+          { tok: "n3", set: { l3: "AC — ?   (BC на 5,1 см менша від AC)" }, options: [
+            { t: "На скільки BC менша від AC", ok: true },
+            { t: "Довжина сторони AC", why: "5,1 см — не довжина AC, а різниця між AC і BC." },
+            { t: "На скільки AB менша від AC", why: "Про яку сторону сказано «на 5,1 см менша»? Слово «але» продовжує речення про BC." },
+          ] },
+        ] },
+      { g: "Порівняння", kind: "decode", title: "Хто більший?", note: NOTE.decode,
+        items: [
+          { rel: "r1", sentence: "BC на 3,7 см більша за AB",
+            bigger: { options: ["AB", "BC"], ok: "BC", hint: "Перечитай: «BC … більша за AB». Хто більший?" },
+            okMsg: "Так. BC більша, отже BC = AB + 3,7. У короткому записі вже так і написано." },
+          { rel: "r2", sentence: "BC на 5,1 см менша від AC",
+            bigger: { options: ["BC", "AC"], ok: "AC", hint: "«Менша» сказано про BC. Якщо BC менша, то хто більший?" },
+            flip: { frame: "AC на 5,1 см ___, ніж BC", options: ["менша", "більша"], ok: "більша", hint: "AC більша за BC. Значить, AC на 5,1 см… більша чи менша?" },
+            set: { l3: "AC — ?, на 5,1 см більша, ніж BC" },
+            okMsg: "Так! AC на 5,1 см більша, ніж BC, отже AC = BC + 5,1. Переписуємо рядок у короткому записі." },
+        ] },
+      { g: "Порівняння", kind: "choice", why: true, title: "Чому?", prompt: "Щоб знайти AC, до BC додаємо 5,1, хоча в задачі написано «менша». Чому?", note: NOTE.why,
+        options: [
+          { t: "Бо для периметра завжди додають", why: "Тут ми шукаємо сторону AC, а не периметр. Хто більший: AC чи BC?" },
+          { t: "Бо «менша» сказано про BC. Більша — AC, тому до BC додаємо", ok: true },
+          { t: "Бо 5,1 — більше число, ніж 3,7", why: "Величина числа тут не важлива. Важливо, хто більший: AC чи BC." },
+        ], okMsg: "Так. Спершу з'ясовуємо, хто більший, а потім вибираємо дію." },
+      { g: "Тип і схема", kind: "types", title: "Який це тип?", prompt: "Назви тип кожного зв'язку в задачі.", note: NOTE.types,
+        items: [
+          { t: "BC на 3,7 см більша, ніж AB", ok: "na", hint: "Сказано, на скільки одна сторона більша за іншу." },
+          { t: "AC на 5,1 см більша, ніж BC", ok: "na", hint: "Сказано, на скільки одна сторона більша за іншу." },
+          { t: "P = AB + BC + AC", ok: "parts", hint: "Периметр складається з трьох сторін: ціле з частин." },
+        ] },
+      { g: "Тип і схема", kind: "diagram", d: "bars", title: "Заповни схему", prompt: "Торкнись порожнього місця на схемі, потім числа.",
+        note: NOTE.diagram + " The bars come after the decode, so they can be drawn to scale without giving it away.",
+        slots: { ab: "8,4", bcd: "3,7", acd: "5,1" }, chips: ["8,4", "3,7", "5,1"],
+        hint: "Подивись на короткий запис: на скільки BC більша за AB? А AC — за BC?", okMsg: "Так. AC найдовша, бо вона на 5,1 см більша за BC." },
+      { g: "План", kind: "plan", title: "Склади план", note: NOTE.plan },
+      { g: "Обчисли", kind: "compute", note: NOTE.compute },
+      { g: "Відповідь", kind: "choice", title: "Відповідь", prompt: "Яке речення відповідає на питання задачі?", note: NOTE.answer,
+        options: [
+          { t: "Сторона AC дорівнює 17,2 см.", why: "Це правда, але питали периметр." },
+          { t: "Периметр трикутника дорівнює 17,2 см.", why: "17,2 см — це сторона AC, а периметр — сума трьох сторін." },
+          { t: "Периметр трикутника дорівнює 37,7 см.", ok: true },
+        ], answer: "Відповідь: периметр трикутника дорівнює 37,7 см.", okMsg: "Так. Записуємо відповідь повним реченням." },
+      { g: "Розбір", kind: "review", note: NOTE.review,
+        checks: ["AC найдовша: 17,2 см > 12,1 см > 8,4 см, як і на схемі.", "AC − BC = 17,2 − 12,1 = 5,1 см — як в умові.", "Відповідь у сантиметрах."],
+        key: "«BC на 5,1 см менша від AC» означає: AC більша за BC. Тому AC = BC + 5,1: у задачі слово «менша», а дія — додавання. Щоразу питай себе: шукане більше чи менше за дане?" },
+    ],
+  },
+};
+
+// ---------- state ----------
+let pid, P, si, item, stage, tries, done, sel, ss, rec, sol, ans, planIdx, results, qDone, diagDone, diagFill, log;
+
+const $ = s => document.querySelector(s);
+function el(tag, attrs = {}, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === "class") e.className = v;
+    else if (k === "html") e.innerHTML = v;
+    else if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
+    else e.setAttribute(k, v);
+  }
+  for (const kid of kids.flat()) if (kid != null && kid !== false) e.append(kid.nodeType ? kid : document.createTextNode(kid));
+  return e;
+}
+const norm = s => { s = String(s).replace(".", ","); if (s.includes(",")) s = s.replace(/0+$/, "").replace(/,$/, ""); return s.replace(/^0+(?=\d)/, ""); };
+const step = () => P.steps[si];
+const kind = () => KINDS[step().kind];
+const curPlan = () => P.plans[planIdx];
+const sameMultiset = (a, b) => a.length === b.length && [...a].sort().join("|") === [...b].sort().join("|");
+
+function start(id) {
+  pid = id; P = PROBLEMS[id];
+  si = 0; rec = {}; sol = []; ans = ""; planIdx = 0; results = []; qDone = false; diagDone = null; diagFill = {}; log = [];
+  document.querySelectorAll(".hrow [data-p]").forEach(b => b.classList.toggle("on", b.dataset.p === id));
+  enterStep();
+  window.scrollTo(0, 0);
+}
+function enterStep() { item = 0; stage = 0; ss = {}; beginItem(); }
+function beginItem() {
+  tries = 0; done = step().kind === "review"; sel = null;
+  feedback();
+  render();
+}
+function render() { renderProgress(); renderProblem(); renderRecord(); renderTask(); renderNote(); setMain(); }
+function feedback(type = "", msg = "") { $("footer").className = type; $("#feedback").textContent = msg; }
+function clearFb() { if (!done) feedback(); }
+function setMain() { $("#main").textContent = step().kind === "review" ? "Ще раз" : done ? "Далі" : "Перевірити"; }
+function where() { const s = step(); return s.g + (s.title ? " · " + s.title : ""); }
+
+function onMain() {
+  const s = step(), k = kind();
+  if (s.kind === "review") { start(pid); return; }
+  if (done) {
+    if (k.next && k.next(s)) { beginItem(); return; }
+    if (si < P.steps.length - 1) si++;
+    enterStep();
+    return;
+  }
+  const r = k.check(s);
+  if (r.empty) { feedback("info", r.msg); return; }
+  if (r.ok) {
+    k.commit && k.commit(s);
+    done = true;
+    feedback("ok", r.msg || "Правильно!");
+  } else {
+    tries++;
+    log.push({ where: where(), what: r.slip ? "arithmetic slip" : tries >= 2 ? "answer shown" : "hint" });
+    if (tries < 2) feedback("bad", r.hint);
+    else {
+      k.reveal(s);
+      k.commit && k.commit(s);
+      done = true;
+      feedback("bad", "Подивись, як правильно. " + (r.explain || "Правильна відповідь позначена зеленим."));
+    }
+  }
+  renderProblem(); renderRecord(); renderTask(); setMain();
+}
+function skip() {
+  const s = step(), k = kind();
+  if (done || s.kind === "review") return;
+  if (s.kind === "given" && !ss.active) ss.active = s.items.find(it => !ss.done.has(it.tok)).tok;
+  k.reveal(s);
+  k.commit && k.commit(s);
+  done = true;
+  feedback("ok", "(мок) Відповідь показано.");
+  renderProblem(); renderRecord(); renderTask(); setMain();
+}
+
+// ---------- shared renderers ----------
+function optionButtons(options, box, okIndex) {
+  options.forEach((o, i) => {
+    let cls = "opt";
+    if (done && i === okIndex) cls += " good";
+    else if (sel === i) cls += done ? " bad" : " sel";
+    box.append(el("button", { class: cls, onclick: () => { if (done) return; sel = i; clearFb(); renderTask(); } }, o.t));
+  });
+}
+function heading(s, box, text) {
+  box.append(el("h2", {}, text || s.title, s.why ? el("span", { class: "badge" }, "Чому?") : null));
+}
+
+function renderProgress() {
+  const present = new Set(P.steps.map(s => s.g));
+  const cur = GROUPS.indexOf(step().g);
+  const segs = el("div", { class: "segs" });
+  GROUPS.forEach((g, i) => segs.append(el("span", { class: "seg" + (!present.has(g) ? " skip" : i < cur ? " done" : i === cur ? " cur" : ""), title: g })));
+  const skipped = GROUPS.filter(g => !present.has(g));
+  const box = $("#progress"); box.innerHTML = "";
+  box.append(segs, el("div", { class: "glabel" }, `${cur + 1} з ${GROUPS.length}: ${step().g}` + (skipped.length ? ` · у цій задачі немає кроку «${skipped.join("», «")}»` : "")));
+}
+
+function renderProblem() {
+  const box = $("#problem"); box.innerHTML = "";
+  const s = step(), k = kind();
+  P.tokens.forEach((tok, i) => {
+    const cls = ["tok"];
+    if (tok.q && (qDone || (s.kind === "tapq" && sel === "q"))) cls.push("qhl");
+    if (s.kind === "tapq" && !done) cls.push("tapq");
+    if (s.kind === "tapq" && sel === i) cls.push("tapsel");
+    if (s.kind === "given" && tok.num) {
+      cls.push(ss.done && ss.done.has(tok.id) ? "numdone" : "tappable");
+      if (ss.active === tok.id) cls.push("numact");
+    }
+    if (s.kind === "decode" && tok.rel && tok.rel.includes(s.items[item].rel)) cls.push("relhl");
+    const span = el("span", { class: cls.join(" ") }, tok.t);
+    if (k.onToken) span.addEventListener("click", () => k.onToken(s, tok, i));
+    box.append(span);
+  });
+}
+
+function renderRecord() {
+  const box = $("#record"); box.innerHTML = "";
+  const lines = P.recordOrder.filter(id => rec[id]).map(id => rec[id]);
+  if (!lines.length && !sol.length && !diagDone) { box.hidden = true; return; }
+  box.hidden = false;
+  box.append(el("div", { class: "cap" }, "Запис у зошиті"));
+  let text = lines.join("\n");
+  if (sol.length) text += "\n\nРозв'язання\n" + sol.join("\n");
+  if (ans) text += "\n" + ans;
+  box.append(el("div", { class: "notebook" }, text));
+  if (diagDone) { box.append(el("div", { class: "cap" }, "Схема")); box.append(DIAGRAMS[diagDone](diagFill, {})); }
+}
+
+function renderTask() { const box = $("#task"); box.innerHTML = ""; kind().render(step(), box); }
+function renderNote() {
+  const box = $("#note"); box.innerHTML = "";
+  box.append(el("div", { html: step().note || "" }));
+  if (step().kind !== "review") box.append(el("button", { onclick: skip }, "⏭ (mock) show the answer"));
+}
+
+// ---------- diagrams ----------
+function wireSlots(wrap, o) {
+  if (!o.interactive) return wrap;
+  wrap.querySelectorAll("[data-slot]").forEach(n => n.addEventListener("click", () => o.onSlot(n.dataset.slot)));
+  return wrap;
+}
+const DIAGRAMS = {
+  bars(fill, o) {
+    const S = 12, X = 36, Y = [32, 90, 148], H = 20, ab = 8.4 * S, bc = 12.1 * S, ac = 17.2 * S;
+    const slot = (id, cx, cy) => {
+      const v = fill[id] || "";
+      const cls = "slot" + (v ? " filled" : "") + (o.sel === id ? " sel" : "") + ((o.wrong || []).includes(id) ? " wrong" : "");
+      return `<g class="${cls}" ${o.interactive ? `data-slot="${id}"` : ""}><rect x="${cx - 23}" y="${cy - 12}" width="46" height="24" rx="6"/><text x="${cx}" y="${cy + 5}" text-anchor="middle">${v}</text></g>`;
+    };
+    const svg = `<svg class="diag" viewBox="0 0 320 176">
+      <text x="0" y="${Y[0] + 15}">AB</text><text x="0" y="${Y[1] + 15}">BC</text><text x="0" y="${Y[2] + 15}">AC</text>
+      <rect class="base" x="${X}" y="${Y[0]}" width="${ab}" height="${H}"/>
+      <rect class="base" x="${X}" y="${Y[1]}" width="${ab}" height="${H}"/><rect class="extra" x="${X + ab}" y="${Y[1]}" width="${bc - ab}" height="${H}"/>
+      <rect class="base" x="${X}" y="${Y[2]}" width="${bc}" height="${H}"/><rect class="extra" x="${X + bc}" y="${Y[2]}" width="${ac - bc}" height="${H}"/>
+      <line class="guide" x1="${X + ab}" y1="${Y[0]}" x2="${X + ab}" y2="${Y[2] + H}"/><line class="guide" x1="${X + bc}" y1="${Y[1]}" x2="${X + bc}" y2="${Y[2] + H}"/>
+      <text x="${X + bc + 6}" y="${Y[1] + 15}">?</text><text x="${X + ac + 6}" y="${Y[2] + 15}">?</text>
+      <path d="M268 ${Y[0]} q8 0 8 8 v${(Y[2] + H - Y[0]) / 2 - 12} l6 4 l-6 4 v${(Y[2] + H - Y[0]) / 2 - 12} q0 8 -8 8" fill="none" stroke="#555"/>
+      <text x="286" y="${(Y[0] + Y[2] + H) / 2 + 5}">P ?</text>
+      ${slot("ab", X + ab / 2, Y[0] - 14)}${slot("bcd", X + (ab + bc) / 2, Y[1] - 14)}${slot("acd", X + (bc + ac) / 2, Y[2] - 14)}
+    </svg>`;
+    return wireSlots(el("div", { html: svg }), o);
+  },
+  table(fill, o) {
+    const cell = id => {
+      const v = fill[id] || "";
+      if (!o.interactive) return v;
+      const cls = "slot" + (v ? " filled" : "") + (o.sel === id ? " sel" : "") + ((o.wrong || []).includes(id) ? " wrong" : "");
+      return `<button class="${cls}" data-slot="${id}">${v}</button>`;
+    };
+    const html = `<table class="vt">
+      <tr><th></th><th>Швидкість</th><th>Час</th><th>Відстань</th></tr>
+      <tr><th>Відомо</th><td rowspan="2">однакова</td><td>${cell("r1t")}</td><td>${cell("r1d")}</td></tr>
+      <tr><th>Шукаємо</th><td>${cell("r2t")}</td><td>?</td></tr></table>`;
+    return wireSlots(el("div", { html }), o);
+  },
+};
+
+// ---------- step kinds ----------
+const KINDS = {
+  choice: {
+    render(s, box) {
+      heading(s, box);
+      box.append(el("p", { class: "prompt" }, s.prompt));
+      optionButtons(s.options, box, s.options.findIndex(o => o.ok));
+    },
+    check(s) {
+      if (sel == null) return { empty: true, msg: "Вибери відповідь." };
+      const o = s.options[sel];
+      return o.ok ? { ok: true, msg: s.okMsg } : { ok: false, hint: o.why, explain: s.okMsg };
+    },
+    reveal(s) { sel = s.options.findIndex(o => o.ok); },
+    commit(s) { if (s.set) Object.assign(rec, s.set); if (s.answer) ans = s.answer; },
+  },
+
+  tapq: {
+    render(s, box) {
+      heading(s, box);
+      box.append(el("p", { class: "prompt" }, s.prompt));
+      if (sel === "q") box.append(el("p", {}, "Вибрано: «" + P.tokens.filter(t => t.q).map(t => t.t).join("") + "»"));
+    },
+    onToken(s, tok, i) { if (done) return; sel = tok.q ? "q" : i; clearFb(); renderProblem(); renderTask(); },
+    check(s) {
+      if (sel == null) return { empty: true, msg: "Торкнись потрібного місця в тексті задачі." };
+      return sel === "q" ? { ok: true, msg: s.okMsg } : { ok: false, hint: s.hint, explain: "Питання задачі виділено жовтим." };
+    },
+    reveal() { sel = "q"; },
+    commit(s) { qDone = true; },
+  },
+
+  given: {
+    render(s, box) {
+      ss.done = ss.done || new Set();
+      heading(s, box);
+      if (!ss.active) {
+        box.append(el("p", { class: "prompt" }, `Торкнись у задачі числа, яке ще не розібране. Розібрано: ${ss.done.size} з ${s.items.length}.`));
+        return;
+      }
+      const it = s.items.find(x => x.tok === ss.active), tok = P.tokens.find(t => t.id === ss.active);
+      box.append(el("p", { class: "prompt" }, `Що означає «${tok.t}»?`));
+      optionButtons(it.options, box, it.options.findIndex(o => o.ok));
+    },
+    onToken(s, tok) {
+      if (done) return;
+      if (!tok.num) { feedback("info", "Торкнись числа."); return; }
+      if (ss.done.has(tok.id)) { feedback("info", "Це число вже розібране."); return; }
+      ss.active = tok.id; sel = null; tries = 0; feedback();
+      renderProblem(); renderTask();
+    },
+    check(s) {
+      if (!ss.active) return { empty: true, msg: "Спершу торкнись числа в задачі." };
+      if (sel == null) return { empty: true, msg: "Вибери, що означає це число." };
+      const o = s.items.find(x => x.tok === ss.active).options[sel];
+      return o.ok ? { ok: true, msg: "Так. Записуємо в короткий запис." } : { ok: false, hint: o.why };
+    },
+    reveal(s) { sel = s.items.find(x => x.tok === ss.active).options.findIndex(o => o.ok); },
+    commit(s) { Object.assign(rec, s.items.find(x => x.tok === ss.active).set); ss.done.add(ss.active); },
+    next(s) { ss.active = null; return ss.done.size < s.items.length; },
+  },
+
+  decode: {
+    render(s, box) {
+      const it = s.items[item];
+      heading(s, box, `${s.title} (${item + 1} з ${s.items.length})`);
+      box.append(el("div", { class: "quote" }, "«" + it.sentence + "»"));
+      const part = stage === 0 ? it.bigger : it.flip;
+      if (stage === 0) box.append(el("p", { class: "prompt" }, "Шукане більше чи менше за дане? Хто тут більший?"));
+      else {
+        box.append(el("p", { class: "prompt" }, "Скажи те саме, почавши з невідомої сторони:"));
+        box.append(el("div", { class: "quote" }, it.flip.frame.replace("___", sel != null ? it.flip.options[sel] : "____")));
+      }
+      const row = el("div", { class: "row2" });
+      optionButtons(part.options.map(t => ({ t })), row, part.options.indexOf(part.ok));
+      box.append(row);
+    },
+    check(s) {
+      const it = s.items[item], part = stage === 0 ? it.bigger : it.flip;
+      if (sel == null) return { empty: true, msg: "Вибери відповідь." };
+      const last = stage === 1 || !it.flip;
+      const msg = last ? it.okMsg : `Так, більша ${it.bigger.ok}.`;
+      return part.options[sel] === part.ok ? { ok: true, msg } : { ok: false, hint: part.hint, explain: msg };
+    },
+    reveal(s) { const it = s.items[item], part = stage === 0 ? it.bigger : it.flip; sel = part.options.indexOf(part.ok); },
+    commit(s) { const it = s.items[item]; if ((stage === 1 || !it.flip) && it.set) Object.assign(rec, it.set); },
+    next(s) {
+      if (stage === 0 && s.items[item].flip) { stage = 1; return true; }
+      stage = 0; item++;
+      return item < s.items.length;
+    },
+  },
+
+  types: {
+    render(s, box) {
+      ss.pick = ss.pick || [];
+      heading(s, box);
+      box.append(el("p", { class: "prompt" }, s.prompt));
+      s.items.forEach((it, i) => {
+        const card = el("div", { class: "rel" + ((ss.wrong || []).includes(i) ? " wrong" : "") + (done ? " good" : "") });
+        card.append(el("div", { class: "reltext" }, it.t));
+        const chips = el("div", { class: "chips" });
+        TYPES.forEach(ty => chips.append(el("button", { class: "chip type" + (ss.pick[i] === ty.id ? " sel" : ""),
+          onclick: () => { if (done) return; ss.pick[i] = ty.id; ss.wrong = (ss.wrong || []).filter(w => w !== i); clearFb(); renderTask(); } }, ty.t)));
+        card.append(chips);
+        box.append(card);
+      });
+    },
+    check(s) {
+      if (s.items.some((_, i) => !ss.pick[i])) return { empty: true, msg: "Вибери тип для кожного зв'язку." };
+      ss.wrong = s.items.map((it, i) => (ss.pick[i] === it.ok ? -1 : i)).filter(i => i >= 0);
+      return ss.wrong.length ? { ok: false, hint: s.items[ss.wrong[0]].hint } : { ok: true, msg: "Правильно!" };
+    },
+    reveal(s) { ss.pick = s.items.map(it => it.ok); ss.wrong = []; },
+  },
+
+  diagram: {
+    render(s, box) {
+      const order = Object.keys(s.slots);
+      ss.fill = ss.fill || {};
+      if (ss.slot === undefined) ss.slot = order[0];
+      heading(s, box);
+      box.append(el("p", { class: "prompt" }, s.prompt));
+      box.append(DIAGRAMS[s.d](ss.fill, { interactive: !done, sel: done ? null : ss.slot, wrong: ss.wrong, onSlot: id => { ss.slot = id; renderTask(); } }));
+      if (done) return;
+      const chips = el("div", { class: "chips" });
+      s.chips.forEach(c => chips.append(el("button", { class: "chip", onclick: () => {
+        if (!ss.slot) return;
+        ss.fill[ss.slot] = c;
+        ss.wrong = (ss.wrong || []).filter(w => w !== ss.slot);
+        ss.slot = order.find(k => !ss.fill[k]) || ss.slot;
+        clearFb(); renderTask();
+      } }, c)));
+      box.append(chips);
+    },
+    check(s) {
+      const order = Object.keys(s.slots);
+      if (order.some(k => !ss.fill[k])) return { empty: true, msg: "Заповни всі порожні місця." };
+      ss.wrong = order.filter(k => ss.fill[k] !== s.slots[k]);
+      return ss.wrong.length ? { ok: false, hint: s.hint, explain: s.okMsg } : { ok: true, msg: s.okMsg };
+    },
+    reveal(s) { ss.fill = { ...s.slots }; ss.wrong = []; },
+    commit(s) { diagDone = s.d; diagFill = { ...ss.fill }; },
+  },
+
+  plan: {
+    render(s, box) {
+      const n = P.plans[0].cards.length;
+      ss.order = ss.order || [];
+      heading(s, box);
+      box.append(el("p", { class: "prompt" }, `Що знаходимо першим, що потім? Кожна картка — це те, що ти знайдеш у кроці. Кроків: ${n}.`));
+      const list = el("div", { class: "planlist" });
+      for (let i = 0; i < n; i++) {
+        const c = P.cards.find(c => c.id === ss.order[i]);
+        list.append(el("button", { class: "planslot" + (c ? " filled" : "") + (done ? " good" : ""),
+          onclick: () => { if (done || !c) return; ss.order.splice(i, 1); clearFb(); renderTask(); } }, `${i + 1}) `, c ? c.t : "…"));
+      }
+      box.append(list);
+      if (done) return;
+      box.append(el("div", { class: "cap" }, "Картки"));
+      P.cards.filter(c => !ss.order.includes(c.id)).forEach(c => box.append(el("button", { class: "opt",
+        onclick: () => { if (ss.order.length < n) { ss.order.push(c.id); clearFb(); renderTask(); } } }, c.t)));
+    },
+    check(s) {
+      const n = P.plans[0].cards.length;
+      if (ss.order.length < n) return { empty: true, msg: "Заповни всі кроки плану." };
+      const m = P.plans.findIndex(pl => pl.cards.join() === ss.order.join());
+      if (m >= 0) { planIdx = m; return { ok: true, msg: m > 0 ? "Правильно! Це теж правильний план." : "Правильно!" }; }
+      const extra = P.cards.find(c => c.why && ss.order.includes(c.id));
+      const hint = extra ? extra.why : ss.order[n - 1] !== P.askedCard ? "Останній крок має знаходити те, що питають у задачі." : P.orderHint;
+      return { ok: false, hint, explain: P.orderHint };
+    },
+    reveal() { ss.order = [...P.plans[0].cards]; planIdx = 0; },
+    commit() {
+      const steps = curPlan().steps;
+      sol = [...(P.solPre || []), ...steps.map((st, i) => `${i + 1}) … = … (${st.u}) — ${st.expl}${i === steps.length - 1 ? "." : ";"}`)];
+    },
+  },
+
+  compute: {
+    render(s, box) {
+      const steps = curPlan().steps, st = steps[item];
+      ss.expr = ss.expr || []; ss.res = ss.res || "";
+      heading(s, box, `Обчисли: крок ${item + 1} з ${steps.length}`);
+      box.append(el("p", { class: "prompt" }, `Знайди: ${st.expl}.`));
+      box.append(el("div", { class: "exprline" }, `${item + 1}) `, el("span", { class: "expr" }, ss.expr.length ? ss.expr.join(" ") : "…"), " = ",
+        el("span", { class: "res" }, ss.res || "…"), ` (${st.u}) — ${st.expl}`));
+      if (done) return;
+      box.append(el("div", { class: "cap" }, "Дія: торкнись чисел і знака"));
+      const chips = el("div", { class: "chips" });
+      [...P.numbers, ...results].forEach(v => chips.append(el("button", { class: "chip", onclick: () => addExpr(v) }, v)));
+      OPS.forEach(o => chips.append(el("button", { class: "chip op", onclick: () => addExpr(o) }, o)));
+      chips.append(el("button", { class: "chip", onclick: () => { ss.expr.pop(); clearFb(); renderTask(); } }, "⌫"));
+      box.append(chips);
+      box.append(el("div", { class: "cap" }, "Результат: порахуй (можна на папері) і введи"));
+      const pad = el("div", { class: "keypad" });
+      ["1", "2", "3", "4", "5", "6", "7", "8", "9", ",", "0", "⌫"].forEach(c => pad.append(el("button", { class: "key", onclick: () => press(c) }, c)));
+      box.append(pad);
+    },
+    check(s) {
+      const st = curPlan().steps[item];
+      if (ss.expr.length < 3 || OPS.includes(ss.expr[ss.expr.length - 1])) return { empty: true, msg: "Склади дію: число, знак, число." };
+      if (!ss.res) return { empty: true, msg: "Введи результат." };
+      const nums = ss.expr.filter((_, i) => i % 2 === 0), ops = ss.expr.filter((_, i) => i % 2 === 1);
+      const commutative = st.op === "+" || st.op === "·";
+      const exprOk = ops.every(o => o === st.op) && (commutative ? sameMultiset(nums, st.terms) : nums.join() === st.terms.join());
+      const explain = `${st.terms.join(` ${st.op} `)} = ${st.r} (${st.u}).`;
+      if (!exprOk) return { ok: false, hint: st.hint, explain };
+      if (norm(ss.res) !== norm(st.r)) return { ok: false, slip: true, hint: "Дію складено правильно. Перевір обчислення.", explain };
+      return { ok: true, msg: "Правильно!" };
+    },
+    reveal() { const st = curPlan().steps[item]; ss.expr = st.terms.flatMap((t, i) => (i ? [st.op, t] : [t])); ss.res = st.r; },
+    commit() {
+      const steps = curPlan().steps, st = steps[item];
+      sol[(P.solPre || []).length + item] = `${item + 1}) ${ss.expr.join(" ")} = ${st.r} (${st.u}) — ${st.expl}${item === steps.length - 1 ? "." : ";"}`;
+      results.push(st.r);
+    },
+    next() { item++; ss.expr = []; ss.res = ""; return item < curPlan().steps.length; },
+  },
+
+  review: {
+    render(s, box) {
+      box.append(el("h2", {}, "Розбір"));
+      box.append(el("p", {}, "Угорі — повний запис, як у зошиті: короткий запис, розв'язання по діях з поясненнями і відповідь повним реченням."));
+      box.append(el("div", { class: "cap" }, "Перевірка"));
+      box.append(el("ul", { class: "checks" }, s.checks.map(c => el("li", {}, "✅ " + c))));
+      box.append(el("div", { class: "key-idea" }, s.key));
+      P.plans.forEach((pl, i) => {
+        if (i === planIdx) return;
+        box.append(el("div", { class: "cap" }, "Інший правильний план"));
+        box.append(el("div", { class: "notebook" }, pl.steps.map((st, j) => `${j + 1}) ${st.terms.join(` ${st.op} `)} = ${st.r} (${st.u}) — ${st.expl}${j === pl.steps.length - 1 ? "." : ";"}`).join("\n")));
+      });
+      const d = el("details", { class: "note" }, el("summary", {}, `For the parent (mock only): ${log.length ? log.length + " mistake(s) on the way" : "no mistakes"}`));
+      if (log.length) d.append(el("ul", {}, log.map(l => el("li", {}, `${l.where}: ${l.what}`))));
+      box.append(d);
+    },
+  },
+};
+
+function addExpr(v) {
+  if (done) return;
+  const last = ss.expr[ss.expr.length - 1], lastIsOp = OPS.includes(last);
+  if (OPS.includes(v)) {
+    if (!ss.expr.length) return;
+    if (lastIsOp) ss.expr[ss.expr.length - 1] = v; else if (ss.expr.length < 5) ss.expr.push(v);
+  } else if (ss.expr.length && !lastIsOp) ss.expr[ss.expr.length - 1] = v;
+  else ss.expr.push(v);
+  clearFb(); renderTask();
+}
+function press(c) {
+  if (done) return;
+  if (c === "⌫") ss.res = ss.res.slice(0, -1);
+  else if (c === ",") { if (!ss.res.includes(",")) ss.res = (ss.res || "0") + ","; }
+  else if (ss.res.length < 8) ss.res += c;
+  clearFb(); renderTask();
+}
+
+document.addEventListener("keydown", e => {
+  if (e.key === "Enter") { e.preventDefault(); onMain(); return; }
+  if (step().kind !== "compute" || done) return;
+  if (/^[0-9]$/.test(e.key)) press(e.key);
+  else if (e.key === "," || e.key === ".") press(",");
+  else if (e.key === "Backspace") press("⌫");
+});
+$("#main").addEventListener("click", onMain);
+document.querySelectorAll(".hrow [data-p]").forEach(b => b.addEventListener("click", () => start(b.dataset.p)));
+$("#notes").addEventListener("change", e => document.body.classList.toggle("nonotes", !e.target.checked));
+start("tri");
+</script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<title>Задачі — Б</title>
+<style>
+  @page { size: A4; margin: 14mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    font-size: 13pt;
+    line-height: 1.45;
+    color: #000;
+    max-width: 178mm;
+    margin: 0 auto;
+    padding: 8mm 0;
+  }
+  @media print { body { padding: 0; } }
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 1.5px solid #000;
+    padding-bottom: 2mm;
+  }
+  h1 { font-size: 20pt; margin: 0; }
+  .fields { font-size: 12pt; }
+  .fields span { margin-left: 8mm; }
+  .tag { font-size: 11pt; border: 1px solid #000; padding: 0 2mm; margin-left: 6mm; }
+  .intro { font-size: 12pt; margin: 3mm 0 0; }
+  .intro p { margin: 0 0 1.5mm; }
+  .sample { white-space: nowrap; }
+  .problem { break-inside: avoid; margin-top: 5mm; }
+  .problem h2 { font-size: 13pt; margin: 0 0 1mm; }
+  .problem p { margin: 0; }
+  .grid {
+    height: 78mm;
+    margin-top: 2mm;
+    border: 1px solid #9aa8b8;
+    background-image:
+      linear-gradient(#d3dce6 1px, transparent 1px),
+      linear-gradient(90deg, #d3dce6 1px, transparent 1px);
+    background-size: 5mm 5mm;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .page-two { break-before: page; }
+  .page-two .grid { height: 112mm; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Задачі</h1>
+  <div class="fields">
+    <span>Ім'я: ______________</span>
+    <span>Дата: ____________</span>
+    <span class="tag">Б</span>
+  </div>
+</header>
+
+<div class="intro">
+  <p>Розв'яжи задачі. Записуй розв'язання так, як у зошиті: по діях, одиниці — у дужках, а після тире — що ти знайшла. Наприкінці напиши відповідь.</p>
+  <p>Наприклад: <span class="sample">1) 25 + 17 = 42 (кг) — маса двох ящиків;</span></p>
+  <p>Короткий запис або малюнок роби, якщо хочеш. Якщо задача не виходить, переходь до наступної.</p>
+</div>
+
+<section class="problem">
+  <h2>Задача 1</h2>
+  <p>У першому кошику 34 яблука, а в другому — на 9 яблук менше. Скільки яблук в обох кошиках?</p>
+  <div class="grid"></div>
+</section>
+
+<section class="problem">
+  <h2>Задача 2</h2>
+  <p>Лижниця пройшла 6000 м за годину. Яку відстань вона пройде за 15 хвилин?</p>
+  <div class="grid"></div>
+</section>
+
+<section class="problem page-two">
+  <h2>Задача 3</h2>
+  <p>У першій коробці 32 олівці, що в 4 рази більше, ніж у другій. Скільки олівців в обох коробках?</p>
+  <div class="grid"></div>
+</section>
+
+<section class="problem">
+  <h2>Задача 4</h2>
+  <p>Сторона DE трикутника DEF дорівнює 7,4 см. Сторона EF на 3,8 см більша за DE, але на 2,7 см менша від DF. Знайди периметр трикутника.</p>
+  <div class="grid"></div>
+</section>
+
+</body>
+</html>
