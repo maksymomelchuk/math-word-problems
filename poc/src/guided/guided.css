@@ -1,0 +1,696 @@
+/* One screen of a guided problem: top bar, problem text, notebook, task, dock. */
+
+.flow {
+  --pad-x: max(16px, env(safe-area-inset-left), env(safe-area-inset-right));
+  --below-topbar: calc(var(--topbar-h, 64px) + 10px);
+  --above-dock: calc(var(--dock-h, 130px) + 10px);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100svh;
+}
+
+/* ---------- top bar ---------- */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  padding: max(6px, env(safe-area-inset-top)) var(--pad-x) 8px;
+  background: var(--surface);
+  border-bottom: 2px solid var(--line);
+}
+
+.topbar-inner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: var(--content-max);
+  margin-inline: auto;
+}
+
+.topbar .icon-button {
+  margin-left: -10px;
+}
+
+.progress {
+  flex: 1;
+  min-width: 0;
+}
+
+.progress-segments {
+  display: flex;
+  gap: 5px;
+  list-style: none;
+}
+
+.progress-segment {
+  flex: 1;
+  height: 12px;
+  border-radius: 6px;
+  background: var(--line);
+  transition: background-color 250ms ease;
+}
+
+.progress-segment[data-state='done'] {
+  background: var(--green);
+}
+
+.progress-segment[data-state='current'] {
+  background: var(--blue);
+}
+
+.progress-label {
+  margin-top: 3px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---------- body ---------- */
+
+.flow-body {
+  display: grid;
+  flex: 1;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: 16px;
+  width: 100%;
+  max-width: var(--content-max);
+  margin-inline: auto;
+  padding: 14px var(--pad-x) 24px;
+}
+
+.flow-side {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+  scroll-margin-top: var(--below-topbar);
+}
+
+.task {
+  scroll-margin-top: var(--below-topbar);
+  scroll-margin-bottom: var(--above-dock);
+}
+
+/* ---------- the problem text ---------- */
+
+.problem-card {
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 2px solid var(--line);
+  border-radius: var(--radius-card);
+}
+
+.problem-text {
+  font-size: 1.1875rem;
+  font-weight: 600;
+  /* Room between lines, so a highlight (text height + 2px each side) never meets the next line's. */
+  line-height: 1.75;
+}
+
+.problem-text[data-tappable] {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.problem-text[data-tappable] .part {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/*
+ * Highlights. A highlighted phrase is one span around its pieces, cloned on
+ * each line, so it reads as one marker across pieces and wraps. The box-shadow
+ * widens it by 2px without moving any text.
+ */
+.run,
+.part {
+  border-radius: 6px;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    color 150ms ease;
+}
+
+.run--found {
+  background: var(--yellow-bg);
+  box-shadow: 0 0 0 2px var(--yellow-bg);
+}
+
+.run--selected {
+  background: var(--blue-bg);
+  box-shadow: 0 0 0 2px var(--blue-bg);
+}
+
+.run--comparison {
+  background: var(--pink-bg);
+  box-shadow: 0 0 0 2px var(--pink-bg);
+}
+
+/* A tapped piece of plain text on Знайти: picked, or wrong. */
+.part--selected {
+  background: var(--blue-bg);
+  box-shadow: 0 0 0 2px var(--blue-bg);
+}
+
+.part--wrong {
+  background: var(--red-bg);
+  box-shadow: 0 0 0 2px var(--red-bg);
+}
+
+/* A number is never broken across lines. */
+.part--number {
+  white-space: nowrap;
+}
+
+/*
+ * On a screen that marks numbers (Відомо), every number is a token with one
+ * shape for the whole screen: a 2px border and a little padding. A state only
+ * changes colours, so marking a number never moves the text, and the token is
+ * exactly as tall as a highlight.
+ */
+.problem-text[data-tokens] .part--number {
+  padding: 0 0.12em;
+  border: 2px solid transparent;
+  border-radius: 8px;
+}
+
+/* Відомо: a number still to label, the one being labelled, and labelled ones. */
+.problem-text[data-tokens] .part--tappable {
+  border-style: dashed;
+  border-color: var(--blue);
+}
+
+.problem-text[data-tokens] .part--active {
+  color: var(--blue-ink);
+  background: var(--blue-bg);
+  border-color: var(--blue);
+}
+
+.problem-text[data-tokens] .part--labelled {
+  color: var(--green-ink);
+  background: var(--green-bg);
+}
+
+.part:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
+}
+
+/* ---------- the notebook ---------- */
+
+.notebook-card .paper {
+  min-height: 46px;
+}
+
+.paper-placeholder {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 28px;
+  color: var(--muted);
+}
+
+.paper-heading {
+  font-weight: 800;
+}
+
+.paper-diagram .diagram,
+.paper-diagram .diagram-table {
+  max-width: 360px;
+}
+
+.paper-diagram {
+  overflow-x: auto;
+  margin: 6px 0;
+  padding: 8px;
+  background: rgb(255 255 255 / 0.85);
+  border-radius: 10px;
+}
+
+.paper-line,
+.paper-diagram {
+  border-radius: 6px;
+  scroll-margin-top: var(--below-topbar);
+  scroll-margin-bottom: var(--above-dock);
+}
+
+.paper-line[data-fresh],
+.paper-diagram[data-fresh] {
+  animation: fresh-line 1.8s var(--ease-out);
+}
+
+@keyframes fresh-line {
+  from {
+    background-color: var(--yellow-bg);
+  }
+  to {
+    background-color: transparent;
+  }
+}
+
+/* ---------- the task ---------- */
+
+.task-heading {
+  margin-bottom: 6px;
+}
+
+.task-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.375rem;
+  font-weight: 800;
+  line-height: 1.25;
+  text-wrap: balance;
+}
+
+.why-badge {
+  padding: 2px 10px;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: #fff;
+  background: var(--purple);
+  border-radius: 999px;
+}
+
+.task-prompt {
+  margin-bottom: 14px;
+  font-size: 1.0625rem;
+  line-height: 1.45;
+}
+
+.task-note {
+  margin-top: -4px;
+  font-weight: 700;
+  color: var(--blue-ink);
+}
+
+.options {
+  display: grid;
+  gap: 8px;
+}
+
+.options--row {
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.quote {
+  margin: 4px 0 12px;
+  padding: 10px 14px;
+  font-size: 1.1875rem;
+  font-weight: 700;
+  line-height: 1.5;
+  background: var(--pink-bg);
+  border-radius: 12px;
+}
+
+.quote--frame {
+  background: var(--surface);
+  border: 2px dashed #e7a9c7;
+}
+
+.blank {
+  display: inline-block;
+  min-width: 4.5ch;
+  padding: 0 4px;
+  text-align: center;
+  color: var(--blue-ink);
+  border-bottom: 3px solid var(--blue);
+}
+
+/* Тип і схема */
+.relations {
+  display: grid;
+  gap: 12px;
+  list-style: none;
+}
+
+.relation {
+  padding: 12px;
+  border: 2px solid var(--line);
+  border-radius: var(--radius-card);
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease;
+}
+
+.relation[data-state='wrong'] {
+  background: var(--red-bg);
+  border-color: var(--red);
+}
+
+.relation[data-state='right'] {
+  border-color: var(--green);
+}
+
+.relation[data-state='right'] .chip[data-selected] {
+  color: var(--green-ink);
+  background: var(--green-bg);
+  border-color: var(--green);
+  box-shadow: 0 3px 0 var(--green);
+}
+
+.relation-text {
+  margin-bottom: 10px;
+  font-weight: 800;
+}
+
+.type-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+/* План */
+.plan-slots {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 16px;
+  list-style: none;
+}
+
+.plan-slot {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  min-height: 52px;
+  padding: 12px 14px;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: left;
+  color: var(--muted);
+  background: #fafafa;
+  border: 2px dashed #b9b9b9;
+  border-radius: 14px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.plan-slot[data-filled] {
+  color: var(--blue-ink);
+  background: var(--blue-bg);
+  border: 2px solid var(--blue);
+  cursor: pointer;
+}
+
+.plan-slots[data-state='wrong'] .plan-slot[data-filled] {
+  color: var(--red-ink);
+  background: var(--red-bg);
+  border-color: var(--red);
+}
+
+.plan-slots[data-state='right'] .plan-slot {
+  color: var(--green-ink);
+  background: var(--green-bg);
+  border: 2px solid var(--green);
+}
+
+.plan-slot:disabled {
+  cursor: default;
+  opacity: 1;
+  -webkit-text-fill-color: currentColor;
+}
+
+.plan-slot-number {
+  flex: none;
+  font-weight: 800;
+}
+
+.plan-slot:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
+}
+
+/* Обчисли */
+.action-line {
+  margin-bottom: 14px;
+  padding: 8px 12px;
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 2.1;
+  font-variant-numeric: tabular-nums;
+  border: 2px solid var(--line);
+  border-radius: 14px;
+  overflow-wrap: anywhere;
+}
+
+.action-slot {
+  display: inline-flex;
+  align-items: center;
+  min-width: 3ch;
+  padding: 0 8px;
+  line-height: 1.6;
+  color: var(--blue-ink);
+  background: var(--blue-bg);
+  border-radius: 8px;
+}
+
+.action-slot[data-empty] {
+  color: var(--muted);
+}
+
+.action-slot[data-wrong] {
+  color: var(--red-ink);
+  background: var(--red-bg);
+}
+
+.action-line[data-state='right'] .action-slot {
+  color: var(--green-ink);
+  background: var(--green-bg);
+}
+
+.action-slot .caret {
+  width: 3px;
+  height: 1.1em;
+  margin-left: 2px;
+  border-radius: 2px;
+  background: var(--blue);
+  animation: caret-blink 1.1s step-end infinite;
+}
+
+@keyframes caret-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.keypad-wrap {
+  margin-top: 2px;
+}
+
+/* The direction check before an action, then its answer kept in view while she builds the action. */
+.direction {
+  margin-bottom: 14px;
+}
+
+.direction-question {
+  margin-bottom: 12px;
+  font-size: 1.1875rem;
+  font-weight: 800;
+  line-height: 1.4;
+  text-wrap: pretty;
+}
+
+.direction-note {
+  display: grid;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--blue-ink);
+  background: var(--blue-bg);
+  border-radius: 12px;
+}
+
+.direction-note .eyebrow {
+  margin-bottom: 2px;
+  color: var(--blue-ink);
+}
+
+.builder[data-after-check] {
+  animation: builder-in 220ms var(--ease-out);
+}
+
+@keyframes builder-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .builder[data-after-check] {
+    animation: none;
+  }
+}
+
+/* The action builder shares the screen with the keypad: keep the keys big, but not huge. */
+.keypad-wrap .keypad-key {
+  height: clamp(3.25rem, 6.5svh, 4rem);
+}
+
+/* Розбір */
+.checks {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+  list-style: none;
+}
+
+.checks li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-weight: 600;
+}
+
+.checks svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--green-button);
+}
+
+.key-idea {
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  font-weight: 700;
+  background: var(--yellow-bg);
+  border-radius: var(--radius-card);
+}
+
+.key-idea .eyebrow {
+  color: #7a6400;
+}
+
+.other-plan {
+  margin-bottom: 8px;
+}
+
+/* ---------- dock ---------- */
+
+.dock {
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
+  padding: 12px var(--pad-x) max(14px, env(safe-area-inset-bottom));
+  background: var(--surface);
+  border-top: 2px solid var(--line);
+  transition: background-color 200ms ease;
+}
+
+.dock[data-tone='ok'] {
+  background: var(--green-bg);
+}
+
+.dock[data-tone='bad'],
+.dock[data-tone='shown'] {
+  background: var(--red-bg);
+}
+
+.dock[data-tone='info'] {
+  background: var(--blue-bg);
+}
+
+.dock-inner {
+  display: grid;
+  gap: 10px;
+  max-width: var(--content-max);
+  margin-inline: auto;
+}
+
+.dock-message {
+  min-height: 1.45em;
+  font-size: 1.0625rem;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.dock[data-tone='ok'] .dock-message {
+  color: var(--green-ink);
+}
+
+.dock[data-tone='bad'] .dock-message,
+.dock[data-tone='shown'] .dock-message {
+  color: var(--red-ink);
+}
+
+.dock[data-tone='info'] .dock-message {
+  color: var(--blue-ink);
+}
+
+/* ---------- wide screens: text and write-up beside the task ---------- */
+
+@media (min-width: 960px) {
+  .topbar-inner,
+  .flow-body,
+  .dock-inner {
+    max-width: var(--wide-max);
+  }
+
+  .flow-body {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 28px;
+    padding-top: 20px;
+  }
+
+  .flow-side {
+    position: sticky;
+    top: var(--below-topbar);
+  }
+
+  .dock-inner {
+    grid-template-columns: minmax(0, 1fr) 300px;
+    align-items: center;
+    column-gap: 24px;
+  }
+}
+
+/* Phones in landscape: tighten. */
+@media (max-height: 520px) {
+  .flow-body {
+    padding-top: 10px;
+  }
+
+  .dock {
+    padding-top: 8px;
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+  }
+
+  .dock .main-button {
+    height: 3rem;
+  }
+
+  .keypad-wrap .keypad-key {
+    height: 2.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-segment,
+  .run,
+  .part,
+  .relation,
+  .dock {
+    transition: none;
+  }
+
+  .paper-line[data-fresh],
+  .paper-diagram[data-fresh],
+  .action-slot .caret {
+    animation: none;
+  }
+}

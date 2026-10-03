@@ -1,0 +1,247 @@
+.diagrams {
+  display: grid;
+  gap: 14px;
+}
+
+.diagrams[data-stacked] .diagram-figure + .diagram-figure {
+  padding-top: 14px;
+  border-top: 2px dashed var(--line);
+}
+
+.diagram-figure {
+  margin: 0;
+}
+
+.diagram-figcaption {
+  margin-bottom: 6px;
+  font-size: 0.875rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.diagram {
+  display: block;
+  width: 100%;
+  max-width: 440px;
+  height: auto;
+  overflow: visible;
+  font-family: var(--font);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.diagram-text {
+  font-size: 15px;
+  font-weight: 700;
+  fill: var(--ink);
+}
+
+.diagram-row-label {
+  font-weight: 800;
+}
+
+.diagram-caption {
+  font-size: 13px;
+  font-weight: 700;
+  fill: var(--muted);
+}
+
+.diagram-value {
+  font-variant-numeric: tabular-nums;
+}
+
+.bar {
+  fill: var(--bar-base);
+  stroke: var(--bar-base-edge);
+  stroke-width: 1.5;
+}
+
+.bar--extra {
+  fill: var(--bar-extra);
+  stroke: var(--bar-extra-edge);
+}
+
+.diagram-guide {
+  stroke: #9a9a9a;
+  stroke-width: 1.25;
+  stroke-dasharray: 3 3;
+}
+
+.diagram-brace {
+  fill: none;
+  stroke: #555;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Slots in SVG diagrams. */
+.svg-slot {
+  cursor: pointer;
+  outline: none;
+}
+
+.svg-slot-hit {
+  fill: transparent;
+}
+
+.svg-slot-box {
+  fill: var(--surface);
+  stroke: #a0a0a0;
+  stroke-width: 1.75;
+  stroke-dasharray: 4 3;
+  transition:
+    stroke 150ms ease,
+    fill 150ms ease;
+}
+
+.svg-slot[data-state='filled'] .svg-slot-box {
+  stroke: var(--blue);
+  stroke-dasharray: none;
+}
+
+.svg-slot[data-state='selected'] .svg-slot-box {
+  fill: var(--blue-bg);
+  stroke: var(--blue);
+  stroke-width: 3;
+  stroke-dasharray: none;
+}
+
+.svg-slot[data-state='wrong'] .svg-slot-box {
+  fill: var(--red-bg);
+  stroke: var(--red);
+  stroke-width: 3;
+  stroke-dasharray: none;
+}
+
+.svg-slot[data-state='right'] .svg-slot-box {
+  fill: var(--green-bg);
+  stroke: var(--green);
+  stroke-width: 2;
+  stroke-dasharray: none;
+}
+
+.svg-slot:focus-visible .svg-slot-box {
+  stroke: var(--blue);
+  stroke-width: 3.5;
+}
+
+/* The three-quantity table. */
+.diagram-table {
+  width: 100%;
+  max-width: 480px;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.diagram-table th,
+.diagram-table td {
+  padding: 5px 4px;
+  border: 1.5px solid #bdbdbd;
+}
+
+.diagram-table thead td {
+  border: 0;
+}
+
+.diagram-table th {
+  font-weight: 800;
+  background: #f4f4f4;
+}
+
+.diagram-table th[scope='row'] {
+  text-align: left;
+}
+
+.diagram-table .table-note {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+/* Narrow windows (Split View, Slide Over): a tighter table. */
+@media (max-width: 400px) {
+  .diagram-table {
+    font-size: 0.8125rem;
+  }
+
+  .diagram-table th,
+  .diagram-table td {
+    padding: 4px 2px;
+  }
+
+  .table-slot {
+    min-width: 3.25rem;
+    padding: 0 4px;
+  }
+}
+
+.table-slot {
+  display: inline-grid;
+  place-items: center;
+  min-width: 3.75rem;
+  min-height: 44px;
+  padding: 0 8px;
+  font: inherit;
+  font-weight: 800;
+  color: var(--ink);
+  background: var(--surface);
+  border: 2px dashed #a0a0a0;
+  border-radius: 10px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease;
+}
+
+button.table-slot {
+  cursor: pointer;
+}
+
+.table-slot[data-state='filled'] {
+  border: 2px solid var(--blue);
+}
+
+.table-slot[data-state='selected'] {
+  border: 3px solid var(--blue);
+  background: var(--blue-bg);
+}
+
+.table-slot[data-state='wrong'] {
+  border: 3px solid var(--red);
+  background: var(--red-bg);
+}
+
+.table-slot[data-state='right'] {
+  border: 2px solid var(--green);
+  background: var(--green-bg);
+}
+
+.table-slot:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
+}
+
+/* In the notebook the diagram is a drawing, not a form. */
+.paper .table-slot {
+  min-height: 0;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+.paper .svg-slot[data-state] .svg-slot-box {
+  fill: transparent;
+  stroke: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .svg-slot-box,
+  .table-slot {
+    transition: none;
+  }
+}

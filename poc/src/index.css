@@ -1,0 +1,98 @@
+@import '@fontsource-variable/nunito';
+
+/* Design tokens. Colours follow the guided-flow mock (Duolingo-like). */
+:root {
+  --green: #58cc02;
+  --green-button: #46a302; /* white text on it passes 3:1 for large bold text */
+  --green-edge: #3a8700;
+  --green-bg: #d7ffb8;
+  --green-ink: #2b7a00;
+  --red: #ff4b4b;
+  --red-bg: #ffdfe0;
+  --red-ink: #c00000;
+  --blue: #1cb0f6;
+  --blue-bg: #ddf4ff;
+  --ink: #3c3c3c;
+  --muted: #6f6f6f;
+  --line: #e5e5e5;
+  --surface: #ffffff;
+  --surface-hover: #f7f7f7;
+  --surface-pressed: #f2f2f2;
+  --page: #ffffff;
+  --red-edge: #d93636;
+  --blue-ink: #0b72a6;
+  --yellow-bg: #fff3b0;
+  --pink-bg: #ffe0f0;
+  --purple: #b565f0;
+  --bar-base: #cfe8ff;
+  --bar-base-edge: #1899d6;
+  --bar-extra: #ffd8a8;
+  --bar-extra-edge: #e8890c;
+  --grid: #e1e8f6;
+
+  --font: 'Nunito Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --radius-key: 16px;
+  --radius-card: 16px;
+  --content-max: 640px;
+  --wide-max: 1160px;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+  color-scheme: light;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--page);
+}
+
+body {
+  font-family: var(--font);
+  font-size: 1.125rem;
+  line-height: 1.45;
+  color: var(--ink);
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior-y: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  /* iOS draws its own button look and fades disabled buttons; every button here is styled. */
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Quick taps on the text or the chips must not zoom the page on an iPad. Pinch zoom still works. */
+html {
+  touch-action: manipulation;
+}
+
+h1,
+h2,
+p,
+ol,
+ul,
+figure {
+  margin: 0;
+}
+
+ol,
+ul {
+  padding: 0;
+}
+
+#root {
+  min-height: 100vh;
+  min-height: 100svh;
+}

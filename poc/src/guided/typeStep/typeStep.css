@@ -1,0 +1,161 @@
+/* Тип і схема, one relation at a time (versions А, Б, В). */
+
+/* The relation's own words in the problem text: the same marker as a comparison in Порівняння. */
+.run--relation {
+  background: var(--pink-bg);
+  box-shadow: 0 0 0 2px var(--pink-bg);
+}
+
+.type-step {
+  scroll-margin-top: var(--below-topbar);
+}
+
+.type-quote-note {
+  display: block;
+  margin-top: 4px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.type-options {
+  display: grid;
+  gap: 10px;
+}
+
+.type-options .option {
+  margin-bottom: 0;
+}
+
+/* А: a name and its example. Two columns once there is room. */
+.type-options--examples {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
+}
+
+.type-option-name {
+  display: block;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.type-option-example {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.35;
+  opacity: 0.8;
+}
+
+/* Б: a small diagram over its name. Three across on a tablet, two on a phone. */
+.type-options--pictures {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 148px), 1fr));
+}
+
+.type-options--pictures .option {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  justify-items: center;
+  gap: 6px;
+  padding: 10px 8px 12px;
+  text-align: center;
+}
+
+.type-options--pictures .type-option-name {
+  align-self: center;
+  font-size: 0.9375rem;
+}
+
+/* В, first question: a family's diagram beside its words. */
+.type-options--families .option,
+.type-settled {
+  display: grid;
+  grid-template-columns: min(40%, 168px) minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+
+.type-option-text {
+  display: block;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+/* В, second question: two types, each with its name as a tag. */
+.type-tag {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 3px 10px;
+  font-size: 0.875rem;
+  font-weight: 800;
+  line-height: 1.3;
+  background: rgb(0 0 0 / 0.06);
+  border-radius: 999px;
+}
+
+.type-settled {
+  grid-template-columns: 112px minmax(0, 1fr);
+  margin: -2px 0 12px;
+  padding: 8px 12px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--green-ink);
+  background: var(--green-bg);
+  border: 2px solid var(--green);
+  border-radius: var(--radius-card);
+}
+
+.type-picture {
+  display: block;
+  width: 100%;
+  max-width: 168px;
+  height: auto;
+  overflow: visible;
+}
+
+.type-picture-text {
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 700;
+  fill: var(--ink);
+}
+
+.type-picture-head {
+  fill: #f4f4f4;
+}
+
+.type-picture-rule {
+  stroke: #bdbdbd;
+  stroke-width: 1.25;
+}
+
+.type-picture-dot {
+  fill: var(--blue-ink);
+}
+
+.type-picture-arrow line {
+  stroke: var(--ink);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.type-picture-arrow path {
+  fill: var(--ink);
+}
+
+/* What she has named so far in this problem. */
+.type-named {
+  margin-top: 18px;
+  font-size: 0.9375rem;
+  color: var(--muted);
+}
+
+.type-named ol {
+  display: grid;
+  gap: 4px;
+  padding-left: 1.4em;
+}
+
+.type-named strong {
+  color: var(--ink);
+}

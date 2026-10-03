@@ -1,0 +1,184 @@
+/* The list of problems and the parent's pages. */
+
+.page {
+  --pad-x: max(16px, env(safe-area-inset-left), env(safe-area-inset-right));
+  width: 100%;
+  max-width: var(--content-max);
+  margin-inline: auto;
+  padding: max(20px, env(safe-area-inset-top)) var(--pad-x) max(32px, env(safe-area-inset-bottom));
+}
+
+.page--parent {
+  max-width: 760px;
+}
+
+.page-header {
+  margin-bottom: 18px;
+}
+
+.page-title {
+  font-size: 1.875rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.page-lead {
+  margin-top: 4px;
+  color: var(--muted);
+}
+
+.level + .level {
+  margin-top: 22px;
+}
+
+.problem-list {
+  display: grid;
+  gap: 10px;
+  list-style: none;
+}
+
+.problem-link {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 12px;
+  margin-bottom: 4px;
+  padding: 14px 16px;
+  color: inherit;
+  text-decoration: none;
+  background: var(--surface);
+  border: 2px solid var(--line);
+  border-radius: var(--radius-card);
+  box-shadow: 0 4px 0 var(--line);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 90ms var(--ease-out),
+    box-shadow 90ms var(--ease-out);
+}
+
+.problem-link:active {
+  transform: translateY(4px);
+  box-shadow: 0 0 0 var(--line);
+  transition-duration: 0s;
+}
+
+.problem-link:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.problem-link-number {
+  font-size: 1.125rem;
+  font-weight: 800;
+}
+
+.problem-link-preview {
+  grid-column: 1;
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 0.9375rem;
+  color: var(--muted);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.problem-link-status {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  padding: 6px 12px;
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: #fff;
+  background: var(--green-button);
+  border-radius: 999px;
+}
+
+.problem-link[data-status='open'] .problem-link-status {
+  background: var(--blue-ink);
+}
+
+.problem-link[data-status='solved'] .problem-link-status {
+  color: var(--green-ink);
+  background: var(--green-bg);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .problem-link:hover {
+    background: var(--surface-hover);
+  }
+}
+
+/* The parent's pages. */
+.record,
+.sample {
+  padding: 16px 0;
+  border-top: 2px solid var(--line);
+}
+
+.record-title {
+  margin-bottom: 8px;
+  font-size: 1.125rem;
+  font-weight: 800;
+}
+
+.record-empty {
+  color: var(--muted);
+}
+
+.attempts {
+  display: grid;
+  gap: 10px;
+  padding-left: 1.4em;
+  font-size: 0.9375rem;
+}
+
+.attempt-events {
+  color: var(--muted);
+}
+
+.parent-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  padding-top: 18px;
+  border-top: 2px solid var(--line);
+}
+
+.text-link {
+  font-weight: 800;
+  color: var(--blue-ink);
+}
+
+.text-link--quiet {
+  display: inline-block;
+  padding: 12px 0;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.page-footer {
+  margin-top: 28px;
+  text-align: center;
+}
+
+.danger-button {
+  min-height: 44px;
+  margin-left: auto;
+  padding: 0 16px;
+  font-weight: 800;
+  color: var(--red-ink);
+  background: var(--surface);
+  border: 2px solid var(--red);
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .problem-link {
+    transition: none;
+  }
+}

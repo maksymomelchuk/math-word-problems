@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Full-bleed art: iOS rounds the corners itself, and everything sits inside the maskable safe zone (r = 205). -->
+  <defs>
+    <clipPath id="page"><rect x="140" y="120" width="232" height="272" rx="32"/></clipPath>
+  </defs>
+  <rect width="512" height="512" fill="#58cc02"/>
+  <rect x="140" y="134" width="232" height="272" rx="32" fill="#46a302"/>
+  <rect x="140" y="120" width="232" height="272" rx="32" fill="#ffffff"/>
+  <g clip-path="url(#page)" stroke="#dbe8fb" stroke-width="3">
+    <path d="M140 149H372M140 178H372M140 207H372M140 236H372M140 265H372M140 294H372M140 323H372M140 352H372M140 381H372"/>
+    <path d="M169 120V392M198 120V392M227 120V392M256 120V392M285 120V392M314 120V392M343 120V392"/>
+  </g>
+  <path d="M206 208A50 50 0 1 1 294.3 240.1C270 254 256 264 256 292" fill="none" stroke="#1cb0f6" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="256" cy="350" r="24" fill="#1cb0f6"/>
+</svg>
