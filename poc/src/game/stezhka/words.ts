@@ -3,6 +3,7 @@
  * with the same warmth for every outcome; nothing praises her as a person,
  * nothing pushes for one more problem, nothing is said about days away.
  */
+import type { HomeworkState } from '../homework'
 import { countWords, shownLine, type Outcome } from '../outcome'
 
 export const WORDS = {
@@ -26,7 +27,9 @@ export const WORDS = {
   setFree: 'Тепер можна повертатися до будь-якої задачі.',
   forParent: 'Для батьків',
   homework: 'Домашнє завдання',
+  homeworkAll: 'Домашні задачі',
   again: 'Ще раз',
+  backHome: 'До стежки',
 }
 
 /** The bird's line on the end-of-problem screen. Only the line changes with how it went: nothing is ever taken away. */
@@ -83,9 +86,6 @@ export function nodeLabel(number: number, repeat: boolean, state: 'done' | 'next
   return `${name}: розв'язано${open ? ', продовжити' : ', відкрити ще раз'}`
 }
 
-/** A homework problem not opened yet, open now, or solved at least once. */
-export type HomeworkState = 'new' | 'open' | 'done'
-
 /** The word on a homework link's button. */
 export const HOMEWORK_GO: Record<HomeworkState, string> = { new: WORDS.start, open: WORDS.resume, done: WORDS.again }
 
@@ -94,6 +94,11 @@ const HOMEWORK_ACTION: Record<HomeworkState, string> = { new: 'почати', op
 /** A homework link's name for a screen reader: «Домашнє завдання, Завдання 6, задача 2: почати». */
 export function homeworkLabel(title: string, state: HomeworkState): string {
   return `${WORDS.homework}, ${title}: ${HOMEWORK_ACTION[state]}`
+}
+
+/** The link to every homework problem: «Усі домашні задачі (3)». */
+export function allHomework(count: number): string {
+  return `Усі домашні задачі (${count})`
 }
 
 export function finishOpenFirst(number: number): string {

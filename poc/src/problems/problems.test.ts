@@ -21,10 +21,16 @@ describe('the problem data', () => {
   })
 
   it('holds up for her homework, word for word from the textbook, off the problem set', () => {
-    for (const { problem: p } of HOMEWORK) {
+    for (const { title, added, problem: p } of HOMEWORK) {
       expect(validateProblem(p, { homework: true }), p.id).toEqual([])
       expect(PROBLEMS).not.toContain(p)
+      expect(p.id, p.id).toMatch(/^hw-[0-9a-z.-]+$/)
+      expect(added, p.id).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+      expect(Number.isNaN(Date.parse(added)), p.id).toBe(false)
+      expect(title.trim(), p.id).not.toBe('')
     }
+    const ids = HOMEWORK.map((h) => h.problem.id)
+    expect(new Set(ids).size, 'two homework problems share an id').toBe(ids.length)
     expect(problem('hw-6.2').text.map((part) => part.text).join('')).toBe(
       'Два туристи вийшли назустріч один одному з міст, відстань між якими 15 км. Перший турист рухався зі швидкістю 4,8 км/год, а другий 5,6 км/год. Чи зустрінуться вони через 1,4 год?',
     )

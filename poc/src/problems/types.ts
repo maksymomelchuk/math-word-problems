@@ -379,3 +379,16 @@ export type GuidedProblem = {
   guidance?: Guidance
   steps: GuidedSteps
 }
+
+/**
+ * One of her homework problems, outside the problem set: not on the path, open
+ * from the start, and always played with every step prompted. Each lives in its
+ * own file in `homework/`, its id `hw-…`, never a problem-set slot.
+ */
+export type Homework = {
+  /** Where it is in the textbook, as she sees it on her home screen: «Завдання 6, задача 2». */
+  title: string
+  /** The day it was added, `2026-10-06`. Newest comes first, and a solved one leaves her home screen a week later. */
+  added: string
+  problem: GuidedProblem
+}

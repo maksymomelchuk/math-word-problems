@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
+    "typecheck": "tsc -b",
     "preview": "vite preview",
     "test": "vitest run",
     "deploy": "npm test && npm run build && npx netlify-cli deploy --prod --dir dist --site 52f3b429-f358-48d2-aedd-a87116e8a66c"

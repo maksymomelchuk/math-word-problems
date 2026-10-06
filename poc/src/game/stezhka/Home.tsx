@@ -1,18 +1,18 @@
 import { useEffect, useRef, useState, type CSSProperties, type RefObject } from 'react'
-import { isFinished, levels } from '../../fading/loop'
+import { levels } from '../../fading/loop'
 import { loadStageSwitch } from '../../fading/stageSwitch'
 import { STAGES } from '../../fading/stages'
 import { loadSession } from '../../guided/session'
 import { Dock } from '../../guided/layout/Dock'
 import { loadProgress, recordLevelEndSeen, recordSetEndSeen, type Progress } from '../../lib/progress'
 import { openProblem } from '../../lib/navigation'
-import { HOMEWORK } from '../../problems/homework'
 import { PROBLEMS } from '../../problems/problems'
 import { celebrationDue, levelSummary, pathOf, type Celebration, type Path, type PathItem, type PathLevel } from '../path'
 import { goalMetToday, xpTotal } from '../score'
 import { AgainIcon, Bird, BoltIcon, CheckIcon, LockIcon, NotebookIcon, StarIcon, TrophyIcon } from './art'
 import { Confetti } from './Confetti'
-import { HOMEWORK_GO, WORDS, finishOpenFirst, homeworkLabel, levelDoneTitle, levelHeld, levelHeldLine, levelTitle, nodeLabel, pathCount, repeatTitle, type HomeworkState } from './words'
+import { HomeworkBar } from './Homework'
+import { WORDS, finishOpenFirst, levelDoneTitle, levelHeld, levelHeldLine, levelTitle, nodeLabel, pathCount, repeatTitle } from './words'
 import '../../guided/guided.css'
 import './stezhka.css'
 
@@ -75,43 +75,8 @@ function GameBar({ progress, finished, openId, barRef }: GameBarProps) {
           </p>
         )}
       </div>
-      <HomeworkRow progress={progress} openId={openId} />
+      <HomeworkBar progress={progress} openId={openId} />
     </header>
-  )
-}
-
-function homeworkState(progress: Progress, openId: string | null, id: string): HomeworkState {
-  if (openId === id) return 'open'
-  return isFinished(progress, id) ? 'done' : 'new'
-}
-
-/**
- * Her homework, off the path: open from the start, in the sticky bar so it
- * shows wherever the path is scrolled. Opening it while a path problem is open
- * starts that problem over next time, as opening any other problem does.
- */
-function HomeworkRow({ progress, openId }: { progress: Progress; openId: string | null }) {
-  if (!HOMEWORK.length) return null
-  return (
-    <ul className="st-hw">
-      {HOMEWORK.map(({ title, problem }) => {
-        const state = homeworkState(progress, openId, problem.id)
-        return (
-          <li key={problem.id}>
-            <a className="st-hw-link" href={`#/problem/${problem.id}`} onClick={openProblem} aria-label={homeworkLabel(title, state)} data-state={state}>
-              {state === 'done' ? <CheckIcon width="22" height="22" /> : <NotebookIcon width="22" height="22" />}
-              <span className="st-hw-text">
-                <small>{WORDS.homework}</small>
-                {title}
-              </span>
-              <span className="st-hw-go" aria-hidden="true">
-                {HOMEWORK_GO[state]}
-              </span>
-            </a>
-          </li>
-        )
-      })}
-    </ul>
   )
 }
 

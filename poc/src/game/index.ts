@@ -5,12 +5,13 @@
  * (home, top bar, the bird, the dressing of the end, handover, 4.6 and
  * level-end screens) is in `./stezhka/`; the rest of the app reaches it only
  * through these names. Switching to option 2 or 3 means a sibling folder with
- * the same five exports, and changing the lines below.
+ * the same six exports, and changing the lines below.
  *
  * Option-neutral, for any option: the loop (`../fading/loop.ts`), the path and
  * the celebrations due (`./path.ts`), how a problem went (`./outcome.ts`), XP
  * and the daily goal (`./score.ts`).
  */
 export { StezhkaHome as GameHome } from './stezhka/Home'
+export { HomeworkPage } from './stezhka/Homework'
 export { EndDressing } from './stezhka/EndDressing'
 export { HandoverDressing, SoloChoiceDressing, SoloChoiceNote } from './stezhka/HandoverDressing'

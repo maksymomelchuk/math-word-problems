@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { emptyProgress, withLevelEndSeen, withSetEndSeen, type Attempt, type HelpEvent, type LogEvent, type LogEventInput, type Progress } from '../lib/progress'
-import { PROBLEMS } from '../problems/problems'
+import { PROBLEMS, WALKING_BOY } from '../problems/problems'
+import type { Homework } from '../problems/types'
+import { homeworkShown, homeworkState } from './homework'
 import { attemptOutcome, countWords, shownLine } from './outcome'
 import { celebrationDue, endOfProblem, levelSummary, pathOf, problemNumber } from './path'
 import { goalMetToday, xpTotal } from './score'
@@ -149,5 +151,30 @@ describe('the end of a problem', () => {
     const check = endOfProblem(progressOf(['1.2', { ...missed(), switched: true, finishedAt: undefined }]), slots, '1.2')
     expect(check).toMatchObject({ repeatAtLevel: null, done: 0 })
     expect(endOfProblem(emptyProgress(), slots, '1.1')).toBeNull()
+  })
+})
+
+describe('her homework on the home screen', () => {
+  const hw = (id: string, added: string): Homework => ({ title: id, added, problem: { ...WALKING_BOY, id } })
+  // Newest first, as `HOMEWORK` lists them.
+  const homework = [hw('hw-c', '2026-10-05'), hw('hw-b', '2026-10-01'), hw('hw-a', '2026-09-20')]
+  const now = new Date(2026, 9, 6, 18)
+  const ids = (list: Homework[]) => list.map((h) => h.problem.id)
+
+  it('shows the unsolved ones first, newest first, then the ones solved in the last week, at most two', () => {
+    expect(ids(homeworkShown(emptyProgress(), homework, null, now))).toEqual(['hw-c', 'hw-b'])
+    const solvedC = progressOf(['hw-c', attempt()])
+    expect(ids(homeworkShown(solvedC, homework, null, now))).toEqual(['hw-b', 'hw-a'])
+    const allSolved = progressOf(['hw-c', attempt()], ['hw-b', attempt()], ['hw-a', attempt()])
+    expect(ids(homeworkShown(allSolved, homework, null, now))).toEqual(['hw-c', 'hw-b'])
+    expect(ids(homeworkShown(allSolved, homework, null, new Date(2026, 9, 8, 9)))).toEqual(['hw-c'])
+  })
+
+  it('says whether each is new, open now, or solved', () => {
+    const progress = progressOf(['hw-b', attempt()])
+    expect(homeworkState(progress, null, 'hw-c')).toBe('new')
+    expect(homeworkState(progress, 'hw-c', 'hw-c')).toBe('open')
+    expect(homeworkState(progress, null, 'hw-b')).toBe('done')
+    expect(homeworkState(progress, 'hw-b', 'hw-b')).toBe('open')
   })
 })

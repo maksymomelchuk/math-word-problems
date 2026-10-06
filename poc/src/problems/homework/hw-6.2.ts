@@ -1,20 +1,10 @@
-import type { Action, GuidedProblem } from './types'
+import type { Action, GuidedProblem, Homework } from '../types'
 
 /**
- * Problems from her school homework, outside the problem set: not on the
- * path, open from the start, and always played with every step prompted
- * (`../fading/play.ts`). Their ids aren't problem-set slots, so they never
- * take a slot's stage, and her progress through the set leaves them out.
- * Texts follow the textbook word for word.
+ * Завдання 6, задача 2: two tourists walk towards each other from towns 15 km
+ * apart. Will they meet after 1,4 год? Added by hand, the model for the
+ * homework bot (`homework-bot/add-homework.md`).
  */
-
-export type Homework = {
-  /** Where it is in the textbook, as she sees it on her home screen. */
-  title: string
-  problem: GuidedProblem
-}
-
-// ---------- Завдання 6, задача 2: Туристи ----------
 
 /**
  * The last action of both plans. Its plan line is neutral: «скільки
@@ -397,5 +387,6 @@ const tourists: GuidedProblem = {
   },
 }
 
-/** Her homework, in the order it was set. */
-export const HOMEWORK: readonly Homework[] = [{ title: 'Завдання 6, задача\u00a02', problem: tourists }]
+const homework: Homework = { title: 'Завдання 6, задача\u00a02', added: '2026-10-06', problem: tourists }
+
+export default homework
