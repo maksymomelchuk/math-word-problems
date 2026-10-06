@@ -139,3 +139,84 @@ The session with her is on hold. The parent ran the mocks and doesn't want her s
 - Add the 4.6 solo-try choice to each option.
 
 Path, stars and hearts are unaffected. Then the session can resume with the second checklist, minus its paper end-screen step.
+
+### Progress (2026-10-03, mock updated)
+
+**Updated to the revisited fading** ([fading-schedule.md](../assets/fading-schedule.md)) in the same file, [game-mechanics-mock.html](../assets/game-mechanics-mock.html). Path, stars and hearts are unchanged.
+
+- **The paper-problem end screen is gone** from all three options. That removes the 8 self-checks, the typed answer and action count, «Де твій розв'язок пішов не так?», the *Screen* entry, and the notes and no-JS labels that went with them. Problem 30 ends on the ordinary end screen, like every other problem, and the panel's intro and each end screen's note say so. That screen could also carry a short line of the steps where she needed help. Options 2 and 3 already name the step when a result had to be shown, so nothing was added.
+- **The 2.1 handover** now uses the schedule's draft: «Тепер дії і відповідь ти записуєш у зошит. Яку дію робити — підкажу.» In option 1 the bird says it, with confetti. Option 2 keeps the plain card, and option 3 the notebook badge.
+  - «Тут, як і раніше» is unchanged: Перекажи, Знайти, Відомо, Порівняння, Тип і схема, План.
+  - «У зошиті» (Обчисли, Відповідь) now reads «По одній дії: я називаю дію, ти записуєш її в зошит і вводиш сюди результат. Я його одразу перевіряю. Відповідь потім звіриш зі зразком.» Before, it said she compares her whole record with the model afterwards.
+- **A new solo-try choice screen (4.6)** in each option. It opens problem 29 (Пазл) and shows the problem's text.
+  - It starts with the schedule's 4.6 draft: «Тепер можеш спробувати розв'язати задачу сама. Або, як і раніше, крок за кроком.»
+  - Then «Як розв'язуватимеш цю задачу?» with two cards that look the same:
+    - «Крок за кроком», selected by default: «Пишеш у зошит по одному кроку, і кожен одразу перевіряємо.»
+    - «Спробую сама»: «Пишеш у зошит увесь розв'язок, а потім вводиш відповідь.»
+  - Below them: «Кнопка «Розбий на кроки» є весь час. А якщо відповідь не зійдеться, розберемо задачу крок за кроком.»
+  - One line in each option's own terms says both ways earn the same:
+    - Option 1: «Досвід однаковий: +10 XP за будь-який спосіб.»
+    - Option 2: «Зірки рахуються однаково для обох способів.»
+    - Option 3: «Для сердечок обидва способи однакові.»
+  - Each screen keeps its option's character:
+    - Option 1 has the bird, without confetti, because confetti on a choice screen would make the solo try look like the prize.
+    - Option 2 is a plain card.
+    - Option 3 has an "unlocked" badge with a fork, so what's unlocked is the choice, not the solo try.
+  - «Почати» only shows which she chose («Обрано: …») and offers «На головну». The problem itself isn't mocked.
+  - Nothing extra is shown for a solo success. Each design note asks whether there should be (see *Afterwards* below).
+- **Small fixes** where the mock still disagreed with the schedule:
+  - *Missed problem.* Two notes and option 2's legend said a typed result or the final answer had been shown. They now say a plan line or an action's result («рядок плану чи результат дії»). Option 1's note adds "after 4.7 for Level 4".
+  - *Problem stub.* Option 1's note now says the actions go to paper one at a time, and each result is checked before the next one opens.
+  - *Daily goal.* Option 3's note now warns that a goal of 3 problems would rush her in Level 4, where a problem may take 8–11 minutes and a sitting holds 1–2.
+  - *Checklist card.* Option 3's paper-screen note said «Підказка» brings it back, but the schedule dropped it. The note went with that screen.
+- **Parent controls.** *Screen* is now *Home*, *Handover (2.1)*, *Solo-try choice (4.6)*, *Problem (stub)* and *End: problem 10*. *Reset all three* also sets each choice back to «Крок за кроком».
+- **Checked** at 360, 390, 820 and 1440 px, on every screen of every option with all three outcomes, plus the homes after «Далі». Nothing overflows and the console shows no errors. The choice works by touch, mouse and keyboard. With JavaScript off, all 15 screens are shown.
+
+**Checklist for the parent.** This replaces both earlier checklists. About 10 minutes on your own, then about 25 with her.
+
+On your own, on the laptop:
+
+- [ ] Open `.scratch/word-problem-poc/assets/game-mechanics-mock.html` in Chrome or Safari by double-clicking it. No internet is needed.
+- [ ] Click the sliders button, tick *Design notes*, and read the yellow note on every screen of options 1, 2 and 3. Use *Screen* to reach *Handover (2.1)* and *Solo-try choice (4.6)*. On the end screen, try all three *How the problem went* settings.
+- [ ] Untick *Design notes*, click *Reset all three* and close the panel. Leave *How the problem went* on *A mistake + a hint she asked for*. Make the browser full-screen.
+
+With her, on the laptop (a laptop browser runs the file reliably; phones and tablets tend to open local files as a static preview):
+
+- [ ] Say only: «Я покажу тобі три варіанти, як може виглядати гра із задачами. Мені цікаво, що ти про них думаєш. Правильних відповідей тут немає.» Don't name the mechanics, and don't say which one you like.
+- [ ] For each option, in the order 1, 2, 3 (tabs at the top):
+  1. **Home.** Let her look, then ask «Що тут відбувається?» If she doesn't mention a ↻ problem, point at one and ask «А це що?»
+  2. **Handover.** Open the panel, choose *Handover (2.1)* and close the panel. Ask «Що тут треба робити?» and «Як тобі такий екран?»
+  3. **Problem and end screen.** She taps «Почати», then «Завершити задачу», and looks at the end screen as long as she likes. Note whether she scrolls down to «Розбір» on her own. Then choose *A result had to be shown (missed)* in the panel and ask «А тепер що змінилося?» Set it back to *A mistake + a hint she asked for*.
+  4. **Solo-try choice.** Choose *Solo-try choice (4.6)* in the panel and close it. Say «Уяви, що це вже задача 29, майже в кінці.» Let her read, then ask «Що тут треба вибрати?» Then ask «Що б ти вибрала?» and «Чому?» Don't explain the two ways, and don't choose for her. If she asks what one means, ask back «А як ти думаєш?» Note which card she picks and whether she reads the lines under the cards. Then she can tap «Почати». In options 2 and 3 you can shorten this to «А тут що б ти вибрала? Чому?»
+  5. **Questions.** Ask in order, without giving examples: «Що тобі тут подобається?», then «А що не подобається або незрозуміло?»
+- [ ] Ask one follow-up per option, only if she hasn't already covered it: for option 1, «Що означає вогник?»; for option 2, «За що забирають зірку?»; for option 3, «Що буде, коли сердечка закінчаться?», then «Як тобі таке правило?».
+- [ ] After all three, let her switch between the tabs freely. Then ask «Якби ти розв'язувала задачі щодня, який варіант ти б вибрала?», «Чому?» and «Чи є щось з інших варіантів, що ти б сюди додала?»
+- [ ] Last, ask «Що має бути, коли відповідь довелося показати?» Leave it open; don't offer choices.
+
+Afterwards, record under `## Comments` in this ticket:
+
+- [ ] Her pick; what she said about each option, in her own words where you can; anything she misunderstood; whether she looked at «Розбір» on her own; what she'd combine; and her answer about a shown answer.
+- [ ] Her reaction to each handover screen, celebration or plain.
+- [ ] Whether she understood the ↻ repeats.
+- [ ] Her reaction to the solo-try choice in each option: which card she picked and why, whether she noticed that «Розбий на кроки» is there at any time, and anything she said about one way being better or harder.
+- [ ] Your own call on whether a wrong answer should cost anything (nothing, a star or a heart), and on whether a solo success should earn anything extra. The mock shows nothing extra. Anything in XP, stars or hearts would make step by step cost something by comparison, which the fading decision rules out. This ticket decides both, and her preference is one input.
+
+### Note (2026-10-03, the parent's calls, delegated)
+
+The parent is away overnight and delegated their calls on this ticket to the orchestrator ("make a research, check other saas, choose recommended option"). An AFK research file, [game-calls.md](../assets/game-calls.md), settles them with sources, and the orchestrator adopts its recommendations:
+
+- **What a wrong answer costs: nothing**, in every option. The fixed consequences are enough: a hint, then the answer with its reason, and a missed problem comes back once at the end of its level. Free hints plus costly misses would pay her to tap «Підказка» twice before thinking. Duolingo dropped hearts in 2025 for the same reason.
+- **A solo-try success earns nothing extra.** One plain line on the end screen says how she solved it, the same size for every way.
+- **No streak**, daily or weekly. Where an option has a "today" spot, the goal is one finished problem, today only, hidden once the set is finished.
+- **Handover screens aren't celebrations**: they're calm, in the option's look, with no confetti. Celebration moves to new level-end and set-end screens.
+- **Also:**
+  - «Далі» always goes home.
+  - "Shown" means what makes a problem missed, in every counter.
+  - There are no rewards inside a problem.
+  - Praise names what happened («Усе зійшлося з першого разу.» replaces «Без жодної помилки! Так тримати!»).
+  - The mascot is in option 1 only, and is never sad.
+- **The fallbacks' rule is accepted**: if her reason for option 2 or 3 is the stars or hearts themselves, a second «Підказка» tap counts like two misses. It shows the model, which makes the problem missed, as [Build the paper steps and the fading schedule](14-build-fading.md) reads it.
+
+**Built ahead of her pick: option 1 · Стежка**, in [Build the game layer and the loop through the problem set](19-build-game-layer.md). With the calls applied, it keeps the most (path, XP, mascot). Option 3 loses its hearts, and option 2's stars become a plain count. It's also the map's Duolingo-style default. The build keeps the option in one module, so a different pick is a contained switch.
+
+**Still open, and the parent's with her:** the session from the "mock updated" checklist. This ticket resolves when her pick and her words are in. If she picks option 2 or 3, ticket 19 switches to that option's build spec in game-calls.md.

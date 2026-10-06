@@ -145,3 +145,32 @@ Each action screen gives one hint, and the next miss shows the answer. To see an
 
    «Для батьків» will show the misses and signs.
 7. Send back any wording changes to the lines above, and whether the hint-then-show on the direction check should stay or change (see "One choice for you").
+
+### Progress (2026-10-03, deployed)
+
+Live at https://reliable-macaron-77e751.netlify.app: on 2026-10-03 its bundle (`index-DNezyNo5.js`) holds the per-sign hints and the direction check («Спершу подумай», «Ти вже знаєш»), so the checklist above can start now.
+
+### Note (2026-10-03, direction check decided)
+
+The parent delegated their open calls to the orchestrator ("everything up to you … choose recommended option"). The "one choice" above is settled: **the direction check keeps hint first, then the answer shown**, as built. The hint sends her back to the problem text, which is the skill being trained. It also matches every other step (hint, then show, from [What does one guided problem look like, step by step?](07-guided-problem-flow.md)), and the miss is recorded either way. The parent's solo checks are being run by proxy on the live link. The session with her (step 6) stays the parent's.
+
+### Progress (2026-10-03, the parent's solo checks by proxy)
+
+The parent delegated their solo checks (steps 2–5 above) and the wording review to the orchestrator. An agent ran them on the live link (`index-DNezyNo5.js`) by touch, in WebKit at iPad sizes, with a quick pass at phone and laptop width. It played 2.3 plan B (every wrong sign, a direction miss, × and «Продовжити»), 2.3 plan A, and 4.7 actions 1–3, then read the records. Every sign hint fits its mistake. The records show each sign and the «більше чи менше» misses. There were no console errors, no overflow and no keyword rules.
+
+**Fixes, applied after [Build the paper steps and the fading schedule](14-build-fading.md) lands** (it's editing the same files):
+
+1. `ComputeScreen.tsx` showed «Знайди: у стільки разів…»; it now shows the plan card's text («у скільки разів…»).
+2. The parent's «·» hint on 2.3 plan B, action 2 («За 20 хв він пройде більше чи менше, ніж за годину?») repeated the direction question she'd just answered. It gains «А 3000 · 3 — більше чи менше, ніж 3000?», as plan A's hints do. That's the orchestrator's call on the delegated wording review.
+
+Cosmetic, left for the fading build: a number and its unit can wrap onto separate lines («20 / хв.»).
+
+**Still the parent's:** step 6, playing 2.3 with her.
+
+### Note (2026-10-03, stage switch first)
+
+The fading build is live (`index-ClRAZLB8.js`), so each problem now plays at its slot's stage: 2.3 at 2.1–2.4 (actions in the notebook) and 4.7 at 4.6–4.7. **Before the session with her, open «Для батьків» and set the stage switch to 1.1–1.7**, so 2.3 plays fully guided as these checklists expect. «Спробувати» and the variant switch work as before. Afterwards, turn the switch off and tap «Стерти записи» before her trial starts.
+
+### Note (2026-10-04, fixes applied)
+
+The proxy check's fixes listed above are applied and live (deployed with all 30 problems), with the tests, the type check and lint passing.

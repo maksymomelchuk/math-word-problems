@@ -99,3 +99,28 @@ The AFK part is done: three new versions of Тип і схема, plus the old o
    - her hints and shown answers, from «Спроби варіантів» at the bottom of the section.
 6. Leave her favourite selected, because that is what she'll see in the trial. Tell me which one you pick and her words.
 7. While you're there, re-check the highlight fixes from [Build the guided-problem flow](12-build-guided-flow.md). In Знайти, the question should be one continuous highlight. In Відомо, each number should have a dashed frame that doesn't move when you tap it.
+
+### Progress (2026-10-03, deployed)
+
+Live at https://reliable-macaron-77e751.netlify.app: on 2026-10-03 its bundle (`index-DNezyNo5.js`) holds the Тип і схема versions (А «Приклади», Б «Схеми», В «Два питання», «Як було») and the variant switch, so the checklist above can start now.
+
+### Progress (2026-10-03, the parent's solo checks by proxy)
+
+The parent delegated their solo checks (steps 1–3 and 7 above) to the orchestrator. An agent ran them on the live link (`index-DNezyNo5.js`) by touch, in WebKit at 820×1180 and 1180×820, with a quick pass at 390×844 and in Chromium at 1440×900. It played А, Б, В and «Як було» on 4.7 and 2.3, each with a hint and a shown answer, plus the diagram. Screenshots are in `.playwright-mcp/proxy-check/`.
+
+- **Clean**: the pink highlights match their quotes. Знайти's highlight is continuous. Відомо's dashed frames don't move when tapped (measured). There were no console errors, no overflow and no keyword rules.
+- **Fixes, applied after [Build the paper steps and the fading schedule](14-build-fading.md) lands** (it's editing the same files). All pass the tests, the type check and lint on a copy of the current code:
+  1. 2.3's relation hints (`problems.ts`): «Тут є швидкість, час і відстань.» gains «І рухається тільки один — хлопчик.», and «Знову швидкість, час і відстань.» gains «І знову рухається тільки хлопчик.». In В's «Один чи двоє?», and on «Зближення / віддалення» in А and Б, the hint didn't answer her mistake.
+  2. 4.7's relation `bcAc` hint: «…одна сторона більша за іншу.» becomes «Сказано, на скільки одна сторона менша від іншої.», because the quote says «менша».
+  3. `typeGuide.ts`: «назустріч одне одному» becomes «назустріч один одному» (two male cyclists).
+  4. `screens.css`: «До задач» and «Зразки схем» in «Для батьків» were 26 px tall, and get a 44 px tap height.
+
+**Still the parent's:** steps 4–6, trying the versions with her and picking one.
+
+### Note (2026-10-03, stage switch first)
+
+The fading build is live (`index-ClRAZLB8.js`), so each problem now plays at its slot's stage: 2.3 at 2.1–2.4 (actions in the notebook) and 4.7 at 4.6–4.7. **Before the session with her, open «Для батьків» and set the stage switch to 1.1–1.7**, so 2.3 plays fully guided as these checklists expect. «Спробувати» and the variant switch work as before. Afterwards, turn the switch off and tap «Стерти записи» before her trial starts.
+
+### Note (2026-10-04, fixes applied)
+
+The proxy check's fixes listed above are applied and live (deployed with all 30 problems), with the tests, the type check and lint passing.

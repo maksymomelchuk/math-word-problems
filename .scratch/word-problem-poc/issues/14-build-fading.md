@@ -2,7 +2,7 @@
 
 Labels: wayfinder:task
 Status: open
-Assignee:
+Assignee: maksymomelchuk
 Blocked by: [How does the guidance fade across the problem set?](08-guidance-fading.md), [Build the guided-problem flow](12-build-guided-flow.md), [How does the Тип і схема step ask for the type so that it's clear to her?](15-clear-type-step.md), [Help her pick the operation in Обчисли](16-help-pick-operation.md)
 Parent: [Map](../MAP.md)
 
@@ -51,4 +51,94 @@ From [Build the guided-problem flow](12-build-guided-flow.md): add a `'paper'` m
 
 From [How does the guidance fade across the problem set?](08-guidance-fading.md), revisited: this checklist was rewritten to the revised schedule. Gone from v1: the whole-problem paper mode, the checklist card, the final-answer and action-count check from Level 3, and the "where did it go off" tap. It builds on [Help her pick the operation in Обчисли](16-help-pick-operation.md)'s `signHints`, `reason` and `direction` on `Action` (`poc/src/problems/types.ts`) and its `checkAction` and `checkDirection` (`poc/src/guided/checks.ts`). Each direction check also needs the relation type it belongs to, for the per-type fade. It now waits for both prototype tickets: the parent's verdicts on the direction check and the Тип і схема version decide what this builds on.
 
+From [How is the trial run?](17-run-the-trial.md):
+
+- **Show each new record in words** in «Для батьків», as the existing attempt lines do, so the parent can read them during the trial. For example: «План, дія 2: «…» — не з першого разу», «Перевір знак: результат 9000 (знак «·»)», «Яка схема в тебе: так», «Який крок далі: «План» замість «Порівняння»», «Розв'язувала сама: перейшла на кроки на «План»».
+- **Keep what [Show the trial records in «Для батьків»](18-trial-records.md) derives from**: each attempt's start and finish time, whether it was a repeat of a missed problem, and the solo-try outcome. That ticket builds the summary list, the solo-try lines, minutes and the export on top of this.
+- **What counts as missed** (the orchestrator's reading of the schedule's Missed problems): any plan line or action result the app had to show. That covers a plan card shown in Levels 1–2, an action shown in Level 1, a typed result shown from 2.1, and a model shown by a second «Підказка» tap, which costs no more than guessing. A wrong direction-check answer or a «Ні» self-check doesn't make a problem missed.
+
 ## Comments
+
+### Note (2026-10-03, started early)
+
+Started before [How does the Тип і схема step ask for the type so that it's clear to her?](15-clear-type-step.md) and [Help her pick the operation in Обчисли](16-help-pick-operation.md) close, on the orchestrator's call. The parent is away overnight, delegated everything, and asked to see the real app in the morning. It builds against Б «Схеми» (the default) while keeping every version working, and against 16 as built (the direction check gives a hint, then the answer). If the parent's sessions with her change either, the change comes as a follow-up. 2.3 must stay playable fully guided through the stage switch, and «Спробувати» must stay, so both sessions can still run on the live link.
+
+Data contract, shared with [Write the guided-step data for the problem set](13-write-guided-data.md), which is being written in parallel:
+
+- `RecordLine` gains `tag?: 'asked' | 'restated'`. `'asked'` marks the line with the «?» of what the problem asks; `'restated'` marks a comparison restated from the unknown's side. A `'restated'` line also has `compare?: { bigger: string; smaller: string }`, the two quantities as the «Хто більший: X чи Y?» buttons name them.
+- `DirectionCheck` gains `relationType: ProblemTypeId`.
+- Every other type change stays additive. Each problem's stage comes from its slot, not from data.
+
+### Progress (2026-10-03)
+
+The AFK part is built, tested and deployed. Live at https://reliable-macaron-77e751.netlify.app, bundle `index-ClRAZLB8.js`. Status stays open: the resolution is the parent playing the triangle through every stage on the iPad.
+
+**What she gets now.** Each problem plays at the stage its slot gives it, from `fading/stages.ts`, not from which data it carries. 2.3 now plays at 2.1–2.4 and 4.7 at 4.6–4.7. The stage switch under «Для батьків» plays any problem at any stage.
+
+- **Paper steps, one at a time.** Each shows a heading, «Готово», then that part's check:
+  - the short record's model with its yes/no self-checks, from 3.1;
+  - «Що більше: X чи Y?» from the restated lines, from 4.4;
+  - «Яка схема в тебе?», then the model and ««?» стоїть там, де шукане?», from 4.1;
+  - the answer's model and self-check, from 2.1;
+  - a name pick for 3.7.
+
+  After a «Ні»: «Виправ у зошиті. Тоді — «Далі».». «Підказка» shows the self-question first, then the model.
+- **Level 2 actions.** The app names each action of her card plan. If the action has a direction check, it's asked next. Then she types the result.
+- **Her own plan from 3.1, in small or big steps.** It works as the checklist says, including the switching, the plan-miss hint, and the valid lines with «Виправ у зошиті». With several valid lines, she picks the one she wrote.
+- **Typed results.** A wrong sign gets its hint, otherwise «Не сходиться» and the action's hint. A second miss shows the action, then «У тебе така сама дія?» when no sign explained it.
+- **The direction check fades per type** on paper Обчисли. Once it has faded, «Підказка» asks it.
+- **The rest:**
+  - «Який крок далі?» from 4.4;
+  - the solo try at 4.6–4.7;
+  - the handovers, and the two step-size lines;
+  - from 3.1, a pick of each relation's diagram (only with А and «Як було») and the «?» as a chip;
+  - replays and repeats of missed problems;
+  - every new record, in words, in «Для батьків».
+
+**Where (`poc/src/`).**
+- The pure logic, with tests, is in `fading/`:
+  - stages and plays: `stages.ts`, `play.ts`;
+  - plan lines and action count: `plan.ts`;
+  - wrong-sign results: `results.ts`;
+  - self-checks and «Що більше?»: `paperChecks.ts`;
+  - «?» chips: `questionSlots.ts`;
+  - her state, derived from her records: `learner.ts`;
+  - the loop functions for ticket 19: `loop.ts`.
+- The screens are in `guided/paper/`. The flow is in `guided/flow.ts`.
+- The records are `Attempt.log`, plus `stage`, `stepSize`, `switched` and `repeat`, in `lib/progress.ts`. Records already saved still read the same: every new field is optional.
+- The stage switch is `screens/StageSwitchPanel.tsx`.
+- 144 tests, the type check and lint pass.
+- Played by touch in WebKit at 820×1180, 1180×820 and 390×844, and in Chromium at 1440×900. That covers 2.3 and 4.7 at every stage, both step sizes, all four versions of Тип і схема, and the solo try (right, wrong, «Розбий на кроки»). The same 20 runs passed on the live link at 820×1180. There were no console errors and no overflow. One diagram tap target measured 43 px at phone width.
+
+**Changes from the schedule** (my calls):
+- **Order from 3.1 on.** The decode comes before the short record in Level 4 too, and in «Який крок далі?». The reason is Level 3's: the record holds the restated comparison.
+- **Знайти on paper (4.1 on)** is a heading with «Готово». It's checked with the short record's «?» line.
+- **«Яка схема в тебе?»** asks her to mark every sketch on her diagram. With Б «Схеми» these are the six type sketches; with the other versions, the three family sketches. The right ones follow from the relations' types.
+- **«Хто більший?» is worded «Що більше: X чи Y?»**, on the orchestrator's call. The step buttons are in alphabetical order, and the progress bar hides which step is due.
+- **Self-checks keep the asked quantity in the nominative** («…про те, що шукали (периметр трикутника)?»), so no case ending can go wrong.
+- **The fade counts only on paper Обчисли.** At 1.x the check is always asked.
+- **Her state leaves out** stage-switch plays and records from before this build.
+- **A replay plays at the later of the two stages.** The prompted steps only shrink from stage to stage, so that is their overlap.
+- **A repeat is queued** once the missed problem is finished.
+- **The 4.6 handover** sits on the solo-choice screen.
+
+**Parent's checklist** (about 40 minutes):
+1. Close «Задачі» fully and reopen it from the icon.
+2. Under «Для батьків», open «Етап задач», pick a stage, then tap «Задача 4.7». The top bar shows «Етап …» while the switch is on. Play the triangle at 1.1–1.7, 2.1–2.4, 2.5–2.8, 3.1–3.8, 4.1–4.3, 4.4–4.5 and 4.6–4.7. At 3.1–3.8 and 4.4–4.5, play it once with «Малі кроки» and once with «Великі кроки». Make a few mistakes: «Інше», a wrong result, a «Ні», the wrong step.
+3. At 4.6–4.7, play it three ways: «Спробую сама» with 37,7; then with a wrong answer; then with «Розбий на кроки».
+4. Play 2.3 at 1.1–1.7: this is fully guided, as for tickets 15 and 16.
+5. Check the records under «Для батьків». Then choose «Вимкнено» and tap «Стерти записи» before her trial.
+6. For the sessions in tickets 15 and 16, set 1.1–1.7 first. Without the switch, 2.3 plays at 2.1–2.4. «Спробувати» is unchanged.
+
+### Progress (2026-10-04, the parent's checklist by proxy)
+
+The parent delegated their solo checks to the orchestrator. An agent ran the checklist above on the live link in WebKit, touch only, at 820×1180, 1180×820 and 390×844:
+
+- The triangle at all seven stages through the stage switch, in small and big steps at 3.x and 4.4–4.5, and solo three ways (right, wrong, «Розбий на кроки»).
+- 2.3 at 1.1–1.7, then the switch off and «Стерти записи».
+- One continuous run through the whole set (1.1 → 4.7), with one miss per level. Each miss came back once at the end of its level. The direction check faded and came back after a wrong sign. Moves between small and big steps, and their lines, happened when they should.
+- Reloads and reopening mid-problem resumed on the same screen at five different stages.
+
+There were no crashes, console errors, dead ends or overflow, and no tap under 44 px at iPad sizes. Two minor items were found: diagram slots are 43 px at phone width, and with the stage switch at 4.4 or later a Level 1 problem asks «Що більше: Дарина чи Тарас?» (only the parent sees this). A polish pass takes both.
+
+**Still the parent's:** playing it on her iPad from the home-screen icon. That's now part of playing Level 1 through in [Build the game layer and the loop through the problem set](19-build-game-layer.md).

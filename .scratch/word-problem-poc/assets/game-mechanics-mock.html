@@ -85,9 +85,7 @@
   .bottom { position: sticky; bottom: 0; z-index: 15; margin-top: auto; background: var(--card); border-top: 2px solid var(--line); padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); }
   .bottom-in { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; gap: 12px; justify-content: flex-end; }
   .bottom .btn { flex: 1; }
-  .sc-count { flex: none; color: var(--muted); font-weight: 700; font-size: 15px; font-variant-numeric: tabular-nums; }
-  .sc-count b { color: var(--ink); }
-  @media (min-width: 640px) { .bottom .btn { flex: 0 0 auto; min-width: 220px; } .sc-count { margin-right: auto; } }
+  @media (min-width: 640px) { .bottom .btn { flex: 0 0 auto; min-width: 220px; } }
 
   .side-card { background: var(--card); border: 2px solid var(--line); border-radius: 18px; padding: 18px; }
   .side-card + .side-card { margin-top: 16px; }
@@ -135,6 +133,37 @@
   .ho-title { font-size: 27px; line-height: 1.2; font-weight: 800; max-width: 22ch; }
   .ho-tip { color: var(--muted); font-size: 16px; max-width: 40ch; }
   .nb-art { width: 170px; height: 128px; }
+  .ho-sub { font-size: 19px; font-weight: 700; max-width: 30ch; margin-top: -6px; text-wrap: balance; }
+  .handover .speech { text-wrap: balance; }
+  .solo .ho-title { font-size: 24px; max-width: 24ch; }
+
+  /* ---------- solo-try choice (4.6, shared) ---------- */
+  .handover .problem-text { width: 100%; text-align: left; font-size: 18px; }
+  .choice { width: 100%; min-width: 0; margin: 0; padding: 0; border: 0; text-align: left; }
+  .choice legend { padding: 0; margin: 0 0 10px; font-size: 19px; font-weight: 800; }
+  .choice-opts { display: grid; gap: 12px; }
+  @media (min-width: 560px) { .choice-opts { grid-template-columns: 1fr 1fr; } }
+  .opt { position: relative; display: grid; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .opt input { position: absolute; top: 0; left: 0; width: 1px; height: 1px; margin: 0; opacity: 0; pointer-events: none; }
+  .opt-box { display: grid; grid-template-columns: 40px minmax(0, 1fr) 28px; align-items: center; gap: 6px 12px; padding: 14px; border: 2px solid var(--line-2); border-radius: 16px; background: var(--card); box-shadow: 0 4px 0 var(--line-2); transition: border-color 150ms ease, background-color 150ms ease, box-shadow 150ms ease; }
+  .opt-ic { width: 40px; height: 40px; padding: 8px; border-radius: 12px; background: var(--off); color: var(--muted); transition: background-color 150ms ease, color 150ms ease; }
+  .opt-t { font-size: 19px; font-weight: 800; line-height: 1.25; }
+  .opt-dot { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--line-2); background: var(--card); color: #fff; }
+  .opt-dot svg { width: 18px; height: 18px; opacity: 0; }
+  .opt-d { grid-column: 1 / -1; color: var(--muted); font-size: 15px; }
+  .opt input:checked + .opt-box { border-color: var(--blue); background: var(--blue-bg); box-shadow: 0 4px 0 var(--blue-d); }
+  .opt input:checked + .opt-box .opt-ic { background: var(--card); color: var(--blue-ink); }
+  .opt input:checked + .opt-box .opt-dot { border-color: var(--blue); background: var(--blue); }
+  .opt input:checked + .opt-box .opt-dot svg { opacity: 1; }
+  .opt input:focus-visible + .opt-box { outline: 3px solid var(--ink); outline-offset: 3px; }
+  .opt:active .opt-box { transform: translateY(2px); box-shadow: 0 2px 0 var(--line-2); }
+  .opt:active input:checked + .opt-box { box-shadow: 0 2px 0 var(--blue-d); }
+  .info-row { display: flex; align-items: flex-start; gap: 10px; text-align: left; width: 100%; padding: 12px 14px; border-radius: 16px; background: var(--card); border: 2px solid var(--line); font-weight: 700; font-size: 16px; }
+  .info-row svg { width: 24px; height: 24px; margin-top: 1px; color: var(--blue-ink); }
+  .solo .bottom-in { flex-wrap: wrap; }
+  .solo-skip { flex: 1 1 100%; text-align: center; color: var(--muted); font-size: 15px; font-weight: 700; }
+  .solo-skip:empty { display: none; }
+  @media (min-width: 640px) { .solo-skip { flex: 1 1 0; text-align: left; } }
 
   /* ---------- end screen (shared) ---------- */
   .end { flex: 1; width: 100%; max-width: 1100px; margin: 0 auto; padding: 24px 16px 36px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 32px; align-content: start; }
@@ -154,7 +183,6 @@
   .rozbir { display: grid; gap: 14px; }
   @media (min-width: 640px) { .rozbir { background: var(--card); border: 2px solid var(--line); border-radius: 20px; padding: 22px 22px 24px; } }
   .rz-title { font-size: 26px; font-weight: 800; }
-  .rz-lead { color: var(--muted); font-size: 16px; margin-top: -8px; }
   .rz-h { font-size: 15px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
   .nb { background-color: #fffffd; background-image: linear-gradient(#e2e9f8 1px, transparent 1px), linear-gradient(90deg, #e2e9f8 1px, transparent 1px); background-size: 20px 20px; border: 1.5px solid #dbe2f1; border-radius: 12px; padding: 12px 14px; font-size: 16px; line-height: 1.6; font-variant-numeric: tabular-nums; }
   .nb .act { padding-left: 1.3em; text-indent: -1.3em; }
@@ -180,27 +208,6 @@
   .key-k { font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #7a6400; margin-bottom: 2px; }
   .key p:last-child { font-weight: 700; font-size: 18px; }
   .rz-sub { color: var(--muted); font-size: 16px; margin-bottom: -6px; }
-
-  /* paper problem: what the app checked + self-checks */
-  .typed { display: grid; gap: 8px; padding: 12px 14px; border-radius: 14px; background: var(--green-bg); }
-  .typed li { display: flex; align-items: center; gap: 10px; font-weight: 700; }
-  .typed ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-  .typed svg { width: 24px; height: 24px; color: var(--green-ink); }
-  .typed .shown-ans svg { color: var(--blue-ink); }
-  .part { display: grid; gap: 10px; padding-top: 16px; border-top: 2px solid var(--line); }
-  .part-h { font-size: 19px; font-weight: 800; }
-  .sc { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
-  .sc li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; align-items: center; }
-  .yn { display: flex; gap: 6px; }
-  .yn button { min-width: 56px; min-height: 44px; padding: 0 10px; border-radius: 12px; border: 2px solid var(--line-2); background: var(--card); font-weight: 800; box-shadow: 0 3px 0 var(--line-2); transition: background-color 120ms ease, border-color 120ms ease; }
-  .yn button[data-a="y"][aria-pressed="true"] { background: var(--green-bg); border-color: var(--green); color: var(--green-ink); box-shadow: 0 3px 0 var(--green); }
-  .yn button[data-a="n"][aria-pressed="true"] { background: var(--orange-bg); border-color: var(--orange); color: var(--orange-ink); box-shadow: 0 3px 0 var(--orange); }
-  .fixit { grid-column: 1 / -1; display: none; color: var(--orange-ink); font-weight: 700; font-size: 15px; }
-  .sc li.is-no .fixit { display: block; }
-  .wrongat { display: grid; gap: 10px; padding: 14px; border-radius: 14px; background: var(--blue-bg); }
-  .wrongat p { font-weight: 800; color: var(--blue-ink); }
-  .wrongat .yn { flex-wrap: wrap; }
-  .wrongat .yn button[aria-pressed="true"] { background: var(--card); border-color: var(--blue); color: var(--blue-ink); box-shadow: 0 3px 0 var(--blue); }
 
   /* ======================================================
      Option 1: Стежка (path + XP + streak + mascot)
@@ -243,6 +250,7 @@
 
   .burst { position: relative; width: 100%; height: 150px; display: grid; place-items: center; }
   .mascot-lg { width: 140px; height: 140px; animation: hop 650ms var(--ease-out) both; }
+  .mascot-md { width: 112px; height: 112px; }
   @keyframes hop { 0% { opacity: 0; transform: translateY(24px) scale(.8); } 100% { opacity: 1; transform: none; } }
   .confetti { position: absolute; inset: 0; pointer-events: none; }
   .confetti i { position: absolute; left: 50%; top: 50%; width: 10px; height: 14px; border-radius: 3px; background: var(--c); opacity: 0; animation: conf 1300ms var(--ease-out) var(--d, 0ms) both; }
@@ -408,6 +416,8 @@
   <symbol id="i-notebook" viewBox="0 0 24 24"><rect x="5.5" y="2.5" width="14" height="19" rx="2.5" fill="currentColor"/><path d="M9 8h7M9 11.5h7M9 15h4.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><path d="M3.5 6.5h3.5M3.5 12h3.5M3.5 17.5h3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
   <symbol id="i-phone" viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="3" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M10.5 18h3" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
   <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M12 11v6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="7.5" r="1.5" fill="currentColor"/></symbol>
+  <symbol id="i-steps" viewBox="0 0 24 24"><path d="M3.5 20.5h5v-5h5v-5h5v-5h2" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-fork" viewBox="0 0 24 24"><path d="M12 21.5V13L6 6.8M12 13l6-6.2" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.5 11V5h6M19.5 11V5h-6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="15" cy="7" r="2.4" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="9" cy="17" r="2.4" fill="none" stroke="currentColor" stroke-width="2.2"/></symbol>
   <!-- an open squared notebook with a pencil (handover screens) -->
   <symbol id="nb-art" viewBox="0 0 170 128">
@@ -445,13 +455,13 @@
 </nav>
 <div class="mockpanel" id="mockpanel" hidden>
   <div class="mockpanel-in">
-    <p><b>For the parent.</b> Mock for <i>Which Duolingo-style game mechanics go into the PoC?</i>: three options for the game layer. Each has a home screen (she is at problem 10, the walking boy, in Level 2), the handover screen shown at 2.1, a stub of the problem, the end screen of problem 10, and the end screen of a paper problem (problem 30, the triangle, solved in the notebook). All three share one look and the same «Розбір», so what differs is the mechanics. The problem's own steps are in <a href="guided-flow-mock.html">guided-flow-mock.html</a>; the fading is in <a href="fading-schedule.md">fading-schedule.md</a>.</p>
+    <p><b>For the parent.</b> Mock for <i>Which Duolingo-style game mechanics go into the PoC?</i>: three options for the game layer. Each has a home screen (she is at problem 10, the walking boy, in Level 2), the handover screen shown at 2.1, the solo-try choice that opens problem 29 (4.6), a stub of the problem, and the end screen of problem 10. Every problem, problem 30 included, ends on that same end screen. All three share one look and the same «Розбір», so what differs is the mechanics. The problem's own steps are in <a href="guided-flow-mock.html">guided-flow-mock.html</a>; the fading is in <a href="fading-schedule.md">fading-schedule.md</a>.</p>
     <div class="ctl"><span>Screen:</span>
       <button type="button" data-set-screen="home" aria-pressed="true">Home</button>
       <button type="button" data-set-screen="handover" aria-pressed="false">Handover (2.1)</button>
+      <button type="button" data-set-screen="solo" aria-pressed="false">Solo-try choice (4.6)</button>
       <button type="button" data-set-screen="problem" aria-pressed="false">Problem (stub)</button>
       <button type="button" data-set-screen="end" aria-pressed="false">End: problem 10</button>
-      <button type="button" data-set-screen="endpaper" aria-pressed="false">End: paper problem 30</button>
     </div>
     <div class="ctl"><span>How the problem went:</span>
       <button type="button" data-set-outcome="clean" aria-pressed="false">No mistakes</button>
@@ -478,7 +488,7 @@
       <span class="stat stat-xp"><svg><use href="#i-bolt"/></svg><b data-when="before">90</b><b data-when="after">100</b> <small>XP</small></span>
       <span class="where">Рівень 2</span>
     </div></header>
-    <div class="note"><div><b>Option 1: lesson path + XP + daily streak + a mascot.</b> The 30 problems are one path in four levels; only the next one is open. XP: 10 for every solved problem however it went, so <b>neither a mistake nor a hint costs anything</b>. The streak (вогник) counts days with at least one solved problem; it never times her. <b>Repeats:</b> a problem where the app had to show a typed result or the final answer comes back once at the end of its level, as one more node (↻ «Повтор задачі N»), styled like the others. Level 1 shows one done; Level 2 has one queued, and a second appears after «Далі» if problem 10 was missed. The finish flag sits after any Level 4 repeats. <b>Notebook:</b> from Level 2 the banners say «із зошитом» and the next node says «Знадобиться зошит». The bird (Кмітка, a placeholder name) appears only in this option.</div></div>
+    <div class="note"><div><b>Option 1: lesson path + XP + daily streak + a mascot.</b> The 30 problems are one path in four levels; only the next one is open. XP: 10 for every solved problem however it went, so <b>neither a mistake nor a hint costs anything</b>. The streak (вогник) counts days with at least one solved problem; it never times her. <b>Repeats:</b> a problem where the app had to show a plan line or an action's result comes back once at the end of its level (after 4.7 for Level 4), as one more node (↻ «Повтор задачі N»), styled like the others. Level 1 shows one done; Level 2 has one queued, and a second appears after «Далі» if problem 10 was missed. The finish flag sits after any Level 4 repeats. <b>Notebook:</b> from Level 2 the banners say «із зошитом» and the next node says «Знадобиться зошит». The bird (Кмітка, a placeholder name) appears only in this option.</div></div>
     <div class="home">
       <main class="path-col">
         <div class="unit u1">
@@ -575,7 +585,7 @@
   <!-- ---------- handover (2.1) ---------- -->
   <section class="screen" data-screen="handover" aria-label="Варіант 1, новий етап">
     <p class="fallback-label">Варіант 1 · Стежка · Новий етап (на задачі 2.1)</p>
-    <div class="note"><div><b>Handover as a celebration.</b> Shown at the first problem of each new stage (2.1, 2.5, 3.1, 4.1, 4.4 and 4.6); this is the 2.1 one, which is also the start of Level 2. Confetti and the bird say the new rule, then a split of what stays in the app and what goes in the notebook. Nothing to tap but «Почати».</div></div>
+    <div class="note"><div><b>Handover as a celebration.</b> Shown at the first problem of each new stage (2.1, 2.5, 3.1, 4.1, 4.4 and 4.6); this is the 2.1 one, which is also the start of Level 2. Confetti and the bird say the new rule (the schedule's 2.1 draft), then a split of what stays in the app and what goes in the notebook. The app keeps checking every step: it names each action, she writes it in the notebook and types its result, which is checked before the next action opens; the answer sentence is then compared with the model. Nothing to tap but «Почати».</div></div>
     <div class="handover">
       <div class="burst" aria-hidden="true">
         <div class="confetti">
@@ -592,15 +602,37 @@
         </div>
         <svg class="mascot-lg"><use href="#mascot"/></svg>
       </div>
-      <p class="speech big">Тепер дії і відповідь ти записуєш у зошит!</p>
+      <p class="speech big">Тепер дії і відповідь ти записуєш у зошит! Яку дію робити — підкажу.</p>
       <h1 class="ho1-title">Рівень 2</h1>
       <div class="split">
         <div class="split-row"><h3><svg><use href="#i-phone"/></svg>Тут, як і раніше</h3><div class="stepchips"><span>Перекажи</span><span>Знайти</span><span>Відомо</span><span>Порівняння</span><span>Тип і схема</span><span>План</span></div></div>
-        <div class="split-row paper"><h3><svg><use href="#i-notebook"/></svg>У зошиті</h3><div class="stepchips"><span>Обчисли</span><span>Відповідь</span></div><p>Результат кожної дії вводиш сюди. Потім звіряєш свій запис зі зразком.</p></div>
+        <div class="split-row paper"><h3><svg><use href="#i-notebook"/></svg>У зошиті</h3><div class="stepchips"><span>Обчисли</span><span>Відповідь</span></div><p>По одній дії: я називаю дію, ти записуєш її в зошит і вводиш сюди результат. Я його одразу перевіряю. Відповідь потім звіриш зі зразком.</p></div>
       </div>
       <p class="ho-tip">Поклади поруч зошит і ручку. Не знаєш, що далі? Натисни «Підказка».</p>
     </div>
     <footer class="bottom"><div class="bottom-in"><button class="btn btn-primary" type="button" data-go="problem">Почати</button></div></footer>
+  </section>
+
+  <!-- ---------- solo-try choice (4.6) ---------- -->
+  <section class="screen solo" data-screen="solo" aria-label="Варіант 1, вибір способу">
+    <p class="fallback-label">Варіант 1 · Стежка · Вибір: крок за кроком чи сама (на задачі 4.6)</p>
+    <div class="note"><div><b>Solo-try choice (4.6), with the bird.</b> The 4.6 handover and the choice that opens the problem are one screen; at 4.7 and on replays after the set, the same choice opens the problem without the stage line. «Крок за кроком» is selected, so one tap on «Почати» carries on as before; «Спробую сама» takes one tap more. The two cards look alike, and neither is called harder or better. Solo: the problem text and the notebook; she writes the whole write-up and types the final answer. «Розбий на кроки» is always there. A wrong answer gets «Не сходиться. Розберімо крок за кроком.», and the steps run from the first one, as does «Розбий на кроки» (she taps «Готово» on parts she has already written). Her choice and any switch are recorded. Here «Почати» only notes the choice; the problem itself isn't mocked. <b>Step by step costs nothing</b>: +10 XP and the streak either way, and the screen says so. No confetti here: on a choice screen it would make «Спробую сама» look like the prize. <b>Open for this ticket:</b> should a solo success earn anything extra (a bird line, a mark on the path node)? Nothing extra is shown, because anything extra would make step by step cost something by comparison.</div></div>
+    <div class="handover">
+      <svg class="mascot-lg mascot-md" aria-hidden="true"><use href="#mascot"/></svg>
+      <p class="speech big">Тепер можеш спробувати розв'язати задачу сама. Або, як і раніше, крок за кроком.</p>
+      <h1 class="ho1-title">Задача 29</h1>
+      <p class="problem-text">Остап, Марічка і Яким разом склали пазл із 360&nbsp;деталей. Остап склав 1/4 усіх деталей, Марічка — 2/5 усіх деталей, а Яким — решту. Скільки деталей склав Яким?</p>
+      <fieldset class="choice">
+        <legend>Як розв'язуватимеш цю задачу?</legend>
+        <div class="choice-opts">
+          <label class="opt"><input type="radio" name="solo1" value="steps" checked><span class="opt-box"><svg class="opt-ic" aria-hidden="true"><use href="#i-steps"/></svg><span class="opt-t">Крок за кроком</span><span class="opt-dot" aria-hidden="true"><svg><use href="#i-check"/></svg></span><span class="opt-d">Пишеш у зошит по одному кроку, і кожен одразу перевіряємо.</span></span></label>
+          <label class="opt"><input type="radio" name="solo1" value="solo"><span class="opt-box"><svg class="opt-ic" aria-hidden="true"><use href="#i-notebook"/></svg><span class="opt-t">Спробую сама</span><span class="opt-dot" aria-hidden="true"><svg><use href="#i-check"/></svg></span><span class="opt-d">Пишеш у зошит увесь розв'язок, а потім вводиш відповідь.</span></span></label>
+        </div>
+      </fieldset>
+      <p class="info-row"><svg aria-hidden="true"><use href="#i-info"/></svg><span>Кнопка «Розбий на кроки» є весь час. А якщо відповідь не зійдеться, розберемо задачу крок за кроком.</span></p>
+      <p class="ho-tip">Досвід однаковий: +10&nbsp;XP за будь-який спосіб.</p>
+    </div>
+    <footer class="bottom"><div class="bottom-in"><p class="solo-skip" role="status"></p><button class="btn btn-primary" type="button" data-solo-start>Почати</button><button class="btn btn-primary" type="button" data-go="home" data-solo-home hidden>На головну</button></div></footer>
   </section>
 
   <!-- ---------- problem stub ---------- -->
@@ -610,7 +642,7 @@
       <button class="x" type="button" data-go="home" aria-label="Вийти"><svg><use href="#i-close"/></svg></button>
       <span class="segs" aria-hidden="true"><i class="cur"></i><i></i><i></i><i></i><i></i><i class="pp"></i><i class="pp"></i></span>
     </div></header>
-    <div class="note"><div>The problem's steps are skipped in this mock; they are in guided-flow-mock.html. In Level 2, Обчисли and Відповідь are paper steps: she writes them in the notebook and types each action's result. In option 1 nothing extra shows while she solves.</div></div>
+    <div class="note"><div>The problem's steps are skipped in this mock; they are in guided-flow-mock.html. In Level 2, Обчисли and Відповідь are paper steps, one at a time: the app names each action, she writes it in the notebook and types its result, and the app checks it before the next one opens. In option 1 nothing extra shows while she solves.</div></div>
     <div class="stub">
       <p class="end-kicker" style="text-align:left">Задача 10</p>
       <p class="problem-text">Хлопчик пройшов 3000&nbsp;м за годину. Яку відстань він пройде за 20&nbsp;хвилин?</p>
@@ -626,7 +658,7 @@
   <!-- ---------- end of problem 10 ---------- -->
   <section class="screen" data-screen="end" aria-label="Варіант 1, кінець задачі">
     <p class="fallback-label">Варіант 1 · Стежка · Кінець задачі 10</p>
-    <div class="note"><div>Celebration first (confetti, the bird's line, +10 XP, the streak), then the «Розбір». Only the bird's line changes with how the problem went; nothing is ever taken away. If a result had to be shown, the problem comes back at the end of the level, and the screen says so plainly. Nothing advances on its own, so she can compare with her notebook for as long as she likes.</div></div>
+    <div class="note"><div>Celebration first (confetti, the bird's line, +10 XP, the streak), then the «Розбір». Only the bird's line changes with how the problem went; nothing is ever taken away. If a result had to be shown, the problem comes back at the end of the level, and the screen says so plainly. Nothing advances on its own, so she can compare with her notebook for as long as she likes. Every problem, problem 30 included, ends on this screen.</div></div>
     <div class="end">
       <div class="end-result r1">
         <div class="burst" aria-hidden="true">
@@ -696,121 +728,6 @@
     </div>
     <footer class="bottom"><div class="bottom-in"><button class="btn btn-primary" type="button" data-go="home">Далі</button></div></footer>
   </section>
-
-  <!-- ---------- end of a paper problem (30) ---------- -->
-  <section class="screen" data-screen="endpaper" aria-label="Варіант 1, кінець задачі в зошиті">
-    <p class="fallback-label">Варіант 1 · Стежка · Кінець задачі 30 (у зошиті)</p>
-    <div class="note"><div><b>End of a paper problem</b> (4.4–4.7 are solved entirely in the notebook; this is 4.7, the triangle). She typed the final answer and how many actions she wrote; the app checked those. Then the model write-up part by part, each with 2–3 yes/no self-checks that name this problem's own lines. «Ні» only says «Виправ у зошиті»: <b>self-checks never change XP, stars or hearts</b>, so there's no reason to tick «Так». With a shown answer she also taps where hers went off. In option 1 the celebration is the same as for any problem.</div></div>
-    <div class="end">
-      <div class="end-result r1">
-        <div class="burst" aria-hidden="true">
-          <div class="confetti">
-            <i style="--x:-150px;--y:-60px;--r:220deg;--c:var(--green)"></i>
-            <i style="--x:-110px;--y:-115px;--r:-160deg;--c:var(--blue);--d:40ms"></i>
-            <i style="--x:-50px;--y:-140px;--r:300deg;--c:var(--orange)"></i>
-            <i style="--x:20px;--y:-150px;--r:-240deg;--c:var(--purple);--d:60ms"></i>
-            <i style="--x:90px;--y:-125px;--r:200deg;--c:var(--gold)"></i>
-            <i style="--x:150px;--y:-62px;--r:-280deg;--c:var(--red);--d:30ms"></i>
-            <i style="--x:-165px;--y:20px;--r:-200deg;--c:var(--gold);--d:80ms"></i>
-            <i style="--x:165px;--y:18px;--r:180deg;--c:var(--blue);--d:20ms"></i>
-          </div>
-          <svg class="mascot-lg"><use href="#mascot"/></svg>
-        </div>
-        <p class="speech">
-          <span data-show="clean">Відповідь сходиться! Тепер звір зошит зі зразком.</span>
-          <span data-show="hints">Підказки саме для цього. Відповідь сходиться!</span>
-          <span data-show="shown">Відповідь довелося показати. Знайди в зошиті, де пішло не так.</span>
-        </p>
-        <h1 class="end-title">Задачу розв'язано!</h1>
-        <ul class="tstats">
-          <li class="tstat ts-xp"><span class="tstat-k">Досвід</span><span class="tstat-v"><svg><use href="#i-bolt"/></svg>+10</span></li>
-          <li class="tstat ts-flame"><span class="tstat-k">Вогник</span><span class="tstat-v"><svg><use href="#i-flame"/></svg>12 днів</span></li>
-          <li class="tstat ts-path"><span class="tstat-k">Стежка</span><span class="tstat-v">30 з 30</span></li>
-        </ul>
-        <p class="again-row" data-show="shown"><svg aria-hidden="true"><use href="#i-again"/></svg>Ця задача ще раз з'явиться в кінці рівня 4.</p>
-      </div>
-      <section class="rozbir paper-rozbir">
-        <h2 class="rz-title">Розбір</h2>
-        <p class="rz-lead">Поклади зошит поруч і звір кожну частину зі зразком. Ці питання для тебе: «Ні» нічого не забирає.</p>
-        <div class="typed">
-          <ul>
-            <li data-show="clean hints"><svg aria-hidden="true"><use href="#i-check"/></svg><span>Твоя відповідь: 37,7&nbsp;см<span data-show="hints"> (з другої спроби)</span></span></li>
-            <li class="shown-ans" data-show="shown"><svg aria-hidden="true"><use href="#i-info"/></svg><span>Правильна відповідь: 37,7&nbsp;см</span></li>
-            <li><svg aria-hidden="true"><use href="#i-check"/></svg><span>Дій у тебе: 3. У зразку теж 3.</span></li>
-          </ul>
-        </div>
-
-        <div class="part">
-          <h3 class="part-h">Короткий запис</h3>
-          <div class="nb">
-            <p>AB — 8,4&nbsp;см</p>
-            <p>BC —&nbsp;?, на 3,7&nbsp;см більша, ніж AB</p>
-            <p>AC —&nbsp;?, на 5,1&nbsp;см більша, ніж BC</p>
-            <p>P —&nbsp;?</p>
-          </div>
-          <ul class="sc">
-            <li><span>Шукане записане зі знаком «?»: «P —&nbsp;?»?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
-            <li><span>Порівняння записані від шуканого: «BC —&nbsp;?, на 3,7&nbsp;см більша, ніж AB» і «AC —&nbsp;?, на 5,1&nbsp;см більша, ніж BC»?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
-            <li><span>Біля кожного числа є одиниця?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
-          </ul>
-        </div>
-
-        <div class="part">
-          <h3 class="part-h">Схема</h3>
-          <svg class="bars" viewBox="0 0 320 180" role="img" aria-label="Схема з відрізками: AB 8,4; BC на 3,7 більша; AC на 5,1 більша; периметр невідомий">
-            <text x="0" y="51">AB</text><text x="0" y="109">BC</text><text x="0" y="167">AC</text>
-            <rect class="base" x="36" y="36" width="100.8" height="20"/>
-            <rect class="base" x="36" y="94" width="100.8" height="20"/><rect class="extra" x="136.8" y="94" width="44.4" height="20"/>
-            <rect class="base" x="36" y="152" width="145.2" height="20"/><rect class="extra" x="181.2" y="152" width="61.2" height="20"/>
-            <line class="guide" x1="136.8" y1="36" x2="136.8" y2="172"/><line class="guide" x1="181.2" y1="94" x2="181.2" y2="172"/>
-            <text x="86.4" y="28" text-anchor="middle">8,4</text><text x="159" y="86" text-anchor="middle">3,7</text><text x="211.8" y="144" text-anchor="middle">5,1</text>
-            <text x="187" y="109">?</text><text x="248" y="167">?</text>
-            <path d="M268 36 q8 0 8 8 v56 l6 4 l-6 4 v56 q0 8 -8 8" fill="none" stroke="#555"/>
-            <text x="286" y="109">P ?</text>
-          </svg>
-          <ul class="sc">
-            <li><span>Схема того самого виду: відрізки?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
-            <li><span>«?» стоїть там, де шукане?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
-          </ul>
-        </div>
-
-        <div class="part">
-          <h3 class="part-h">Розв'язання</h3>
-          <div class="nb">
-            <p class="act">1) 8,4 + 3,7 = 12,1 (см) — довжина сторони BC;</p>
-            <p class="act">2) 12,1 + 5,1 = 17,2 (см) — довжина сторони AC;</p>
-            <p class="act">3) 8,4 + 12,1 + 17,2 = 37,7 (см) — периметр трикутника.</p>
-          </div>
-          <ul class="sc">
-            <li><span>Остання дія знаходить периметр трикутника?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
-            <li><span>Після кожної дії є пояснення?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
-          </ul>
-        </div>
-
-        <div class="part">
-          <h3 class="part-h">Відповідь</h3>
-          <div class="nb"><p class="nb-ans">Відповідь: периметр трикутника дорівнює 37,7&nbsp;см.</p></div>
-          <ul class="sc">
-            <li><span>Відповідь — повним реченням про периметр трикутника?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
-          </ul>
-        </div>
-
-        <div class="wrongat" data-show="shown">
-          <p>Де твій розв'язок пішов не так?</p>
-          <span class="yn pick"><button type="button" aria-pressed="false">Короткий запис</button><button type="button" aria-pressed="false">План</button><button type="button" aria-pressed="false">Обчислення</button></span>
-        </div>
-
-        <h3 class="rz-h">Перевірка</h3>
-        <ul class="checks">
-          <li><svg><use href="#i-check"/></svg><span>AC найдовша: 17,2&nbsp;см &gt; 12,1&nbsp;см &gt; 8,4&nbsp;см, як і на схемі.</span></li>
-          <li><svg><use href="#i-check"/></svg><span>AC − BC = 17,2 − 12,1 = 5,1&nbsp;см — як в умові.</span></li>
-          <li><svg><use href="#i-check"/></svg><span>Відповідь у сантиметрах.</span></li>
-        </ul>
-        <div class="key"><p class="key-k">Головне</p><p>«BC на 5,1&nbsp;см менша від AC» означає: AC більша за BC. Тому AC = BC + 5,1: у задачі слово «менша», а дія — додавання. Щоразу питай себе: шукане більше чи менше за дане?</p></div>
-      </section>
-    </div>
-    <footer class="bottom"><div class="bottom-in"><span class="sc-count">Перевірено: <b>0</b> з 8</span><button class="btn btn-primary" type="button" data-go="home">Далі</button></div></footer>
-  </section>
 </div>
 
 <!-- =====================================================================
@@ -825,7 +742,7 @@
       <span class="stat stat-star"><svg><use href="#i-star"/></svg><b data-when="before">25</b><b data-when="after"><span data-show="clean hints">28</span><span data-show="shown">27</span></b> <small>з 90</small></span>
       <span class="where">Рівень 2</span>
     </div></header>
-    <div class="note"><div><b>Option 2: stars only.</b> Each problem earns 3 stars minus one for every answer the app had to show after two wrong tries (at least 1). <b>Hints never cost a star</b>: neither the hint after a first wrong try nor the «Підказка» she asks for on a paper step, so asking never costs more than guessing. <b>Repeats:</b> only a shown typed result or final answer makes a problem come back at the end of its level (↻ tiles, styled like the others); there she can win the star back. Any solved tile can also be replayed. The end screen no longer offers «Ще раз», because re-solving straight after the model helps less than a repeat later. No XP, streak or mascot. <b>Notebook:</b> levels 2–4 say «із зошитом», and so does the next tile.</div></div>
+    <div class="note"><div><b>Option 2: stars only.</b> Each problem earns 3 stars minus one for every answer the app had to show after two wrong tries (at least 1). <b>Hints never cost a star</b>: neither the hint after a first wrong try nor the «Підказка» she asks for on a paper step, so asking never costs more than guessing. <b>Repeats:</b> only a shown plan line or action result makes a problem come back at the end of its level (↻ tiles, styled like the others); there she can win the star back. Any solved tile can also be replayed. The end screen no longer offers «Ще раз», because re-solving straight after the model helps less than a repeat later. No XP, streak or mascot. <b>Notebook:</b> levels 2–4 say «із зошитом», and so does the next tile.</div></div>
     <div class="home">
       <main>
         <section class="lvl">
@@ -896,7 +813,7 @@
             <li><span class="tstars" aria-label="1 зірка"><svg class="st on"><use href="#i-star"/></svg><svg class="st"><use href="#i-star"/></svg><svg class="st"><use href="#i-star"/></svg></span>дві чи більше</li>
           </ul>
           <p class="side-p"><b>Підказки не забирають зірок.</b> Зірку забирає лише відповідь, яку довелося показати після двох помилок.</p>
-          <p class="side-p rep-p"><svg aria-hidden="true"><use href="#i-again"/></svg><span>Якщо довелося показати результат чи відповідь, задача повернеться в кінці рівня. Там можна повернути зірку.</span></p>
+          <p class="side-p rep-p"><svg aria-hidden="true"><use href="#i-again"/></svg><span>Якщо довелося показати рядок плану чи результат дії, задача повернеться в кінці рівня. Там можна повернути зірку.</span></p>
         </section>
       </aside>
     </div>
@@ -905,20 +822,45 @@
   <!-- ---------- handover (2.1) ---------- -->
   <section class="screen" data-screen="handover" aria-label="Варіант 2, новий етап">
     <p class="fallback-label">Варіант 2 · Зірки · Новий етап (на задачі 2.1)</p>
-    <div class="note"><div><b>Handover as plain information, no celebration.</b> One card: the new rule, what stays in the app and what goes in the notebook, and a reminder that hints don't cost stars. Shown at 2.1, 2.5, 3.1, 4.1, 4.4 and 4.6; this is the 2.1 one.</div></div>
+    <div class="note"><div><b>Handover as plain information, no celebration.</b> One card: the new rule (the schedule's 2.1 draft), what stays in the app and what goes in the notebook, and a reminder that hints don't cost stars. The app keeps checking every step: it names each action, she writes it in the notebook and types its result, which is checked before the next action opens; the answer sentence is then compared with the model. Shown at 2.1, 2.5, 3.1, 4.1, 4.4 and 4.6; this is the 2.1 one.</div></div>
     <div class="handover">
       <div class="ho2-card">
         <svg class="nb-art" aria-hidden="true"><use href="#nb-art"/></svg>
         <p class="ho-k">Рівень 2 · новий етап</p>
-        <h1 class="ho-title">Тепер дії і відповідь ти записуєш у зошит</h1>
+        <h1 class="ho-title">Тепер дії і відповідь ти записуєш у зошит.</h1>
+        <p class="ho-sub">Яку дію робити — підкажу.</p>
         <div class="split">
           <div class="split-row"><h3><svg><use href="#i-phone"/></svg>Тут, як і раніше</h3><div class="stepchips"><span>Перекажи</span><span>Знайти</span><span>Відомо</span><span>Порівняння</span><span>Тип і схема</span><span>План</span></div></div>
-          <div class="split-row paper"><h3><svg><use href="#i-notebook"/></svg>У зошиті</h3><div class="stepchips"><span>Обчисли</span><span>Відповідь</span></div><p>Результат кожної дії вводиш сюди. Потім звіряєш свій запис зі зразком.</p></div>
+          <div class="split-row paper"><h3><svg><use href="#i-notebook"/></svg>У зошиті</h3><div class="stepchips"><span>Обчисли</span><span>Відповідь</span></div><p>По одній дії: я називаю дію, ти записуєш її в зошит і вводиш сюди результат. Я його одразу перевіряю. Відповідь потім звіриш зі зразком.</p></div>
         </div>
         <p class="ho-tip">Поклади поруч зошит і ручку. Підказки не забирають зірок.</p>
       </div>
     </div>
     <footer class="bottom"><div class="bottom-in"><button class="btn btn-primary" type="button" data-go="problem">Почати</button></div></footer>
+  </section>
+
+  <!-- ---------- solo-try choice (4.6) ---------- -->
+  <section class="screen solo" data-screen="solo" aria-label="Варіант 2, вибір способу">
+    <p class="fallback-label">Варіант 2 · Зірки · Вибір: крок за кроком чи сама (на задачі 4.6)</p>
+    <div class="note"><div><b>Solo-try choice (4.6) as a plain card.</b> The 4.6 handover and the choice that opens the problem are one screen; at 4.7 and on replays after the set, the same choice opens the problem without the stage line. «Крок за кроком» is selected, so one tap on «Почати» carries on as before; «Спробую сама» takes one tap more. The two cards look alike, and neither is called harder or better. Solo: the problem text and the notebook; she writes the whole write-up and types the final answer. «Розбий на кроки» is always there. A wrong answer gets «Не сходиться. Розберімо крок за кроком.», and the steps run from the first one, as does «Розбий на кроки» (she taps «Готово» on parts she has already written). Her choice and any switch are recorded. Here «Почати» only notes the choice; the problem itself isn't mocked. <b>Stars are counted the same way for both</b>, and the card says so: a star goes only for a plan line or result the app had to show. A wrong solo answer isn't a shown answer; only what is shown in the steps after it costs a star. <b>Open for this ticket:</b> should a solo success earn anything extra, such as a mark on the tile? Nothing extra is shown: an extra star would make step by step cost a star by comparison.</div></div>
+    <div class="handover">
+      <div class="ho2-card">
+        <p class="ho-k">Рівень 4 · задача 29</p>
+        <h1 class="ho-title">Тепер можеш спробувати розв'язати задачу сама.</h1>
+        <p class="ho-sub">Або, як і раніше, крок за кроком.</p>
+        <p class="problem-text">Остап, Марічка і Яким разом склали пазл із 360&nbsp;деталей. Остап склав 1/4 усіх деталей, Марічка — 2/5 усіх деталей, а Яким — решту. Скільки деталей склав Яким?</p>
+      <fieldset class="choice">
+        <legend>Як розв'язуватимеш цю задачу?</legend>
+        <div class="choice-opts">
+          <label class="opt"><input type="radio" name="solo2" value="steps" checked><span class="opt-box"><svg class="opt-ic" aria-hidden="true"><use href="#i-steps"/></svg><span class="opt-t">Крок за кроком</span><span class="opt-dot" aria-hidden="true"><svg><use href="#i-check"/></svg></span><span class="opt-d">Пишеш у зошит по одному кроку, і кожен одразу перевіряємо.</span></span></label>
+          <label class="opt"><input type="radio" name="solo2" value="solo"><span class="opt-box"><svg class="opt-ic" aria-hidden="true"><use href="#i-notebook"/></svg><span class="opt-t">Спробую сама</span><span class="opt-dot" aria-hidden="true"><svg><use href="#i-check"/></svg></span><span class="opt-d">Пишеш у зошит увесь розв'язок, а потім вводиш відповідь.</span></span></label>
+        </div>
+      </fieldset>
+      <p class="info-row"><svg aria-hidden="true"><use href="#i-info"/></svg><span>Кнопка «Розбий на кроки» є весь час. А якщо відповідь не зійдеться, розберемо задачу крок за кроком.</span></p>
+        <p class="ho-tip">Зірки рахуються однаково для обох способів.</p>
+      </div>
+    </div>
+    <footer class="bottom"><div class="bottom-in"><p class="solo-skip" role="status"></p><button class="btn btn-primary" type="button" data-solo-start>Почати</button><button class="btn btn-primary" type="button" data-go="home" data-solo-home hidden>На головну</button></div></footer>
   </section>
 
   <!-- ---------- problem stub ---------- -->
@@ -944,7 +886,7 @@
   <!-- ---------- end of problem 10 ---------- -->
   <section class="screen" data-screen="end" aria-label="Варіант 2, кінець задачі">
     <p class="fallback-label">Варіант 2 · Зірки · Кінець задачі 10</p>
-    <div class="note"><div>The stars, then the «Розбір». With hints only, she still gets 3 stars and the screen says hints cost nothing. A shown result costs one star, and the screen says the problem comes back at the end of the level, where she can win it back. No list of where she needed help: that is recorded for the trial, not scored.</div></div>
+    <div class="note"><div>The stars, then the «Розбір». With hints only, she still gets 3 stars and the screen says hints cost nothing. A shown result costs one star, and the screen says the problem comes back at the end of the level, where she can win it back. No list of where she needed help: that is recorded for the trial, not scored. Every problem, problem 30 included, ends on this screen.</div></div>
     <div class="end">
       <div class="end-result r2">
         <p class="end-kicker">Задача 10</p>
@@ -995,107 +937,6 @@
     </div>
     <footer class="bottom"><div class="bottom-in"><button class="btn btn-primary" type="button" data-go="home">Далі</button></div></footer>
   </section>
-
-  <!-- ---------- end of a paper problem (30) ---------- -->
-  <section class="screen" data-screen="endpaper" aria-label="Варіант 2, кінець задачі в зошиті">
-    <p class="fallback-label">Варіант 2 · Зірки · Кінець задачі 30 (у зошиті)</p>
-    <div class="note"><div><b>End of a paper problem</b> (4.7, the triangle, solved entirely in the notebook). Stars count only a shown final answer, never the self-checks: a «Ні» costs nothing, so there's no reason to tick «Так».</div></div>
-    <div class="end">
-      <div class="end-result r2">
-        <p class="end-kicker">Задача 30</p>
-        <div class="bigstars" aria-hidden="true">
-          <svg class="bs s1"><use href="#i-star"/></svg><svg class="bs s2"><use href="#i-star"/></svg><svg class="bs s3"><use href="#i-star"/></svg>
-        </div>
-        <h1 class="end-title"><span data-show="clean hints">Три зірки!</span><span data-show="shown">Дві зірки</span></h1>
-        <p class="end-sub">
-          <span data-show="clean">Відповідь зійшлася з першого разу.</span>
-          <span data-show="hints">Підказки не забирають зірок.</span>
-          <span data-show="shown">Зірку забрала показана відповідь.</span>
-        </p>
-        <p class="again-row" data-show="shown"><svg aria-hidden="true"><use href="#i-again"/></svg>Ця задача повернеться в кінці рівня 4. Там можна повернути зірку.</p>
-      </div>
-      <section class="rozbir paper-rozbir">
-        <h2 class="rz-title">Розбір</h2>
-        <p class="rz-lead">Поклади зошит поруч і звір кожну частину зі зразком. Ці питання для тебе: «Ні» нічого не забирає.</p>
-        <div class="typed">
-          <ul>
-            <li data-show="clean hints"><svg aria-hidden="true"><use href="#i-check"/></svg><span>Твоя відповідь: 37,7&nbsp;см<span data-show="hints"> (з другої спроби)</span></span></li>
-            <li class="shown-ans" data-show="shown"><svg aria-hidden="true"><use href="#i-info"/></svg><span>Правильна відповідь: 37,7&nbsp;см</span></li>
-            <li><svg aria-hidden="true"><use href="#i-check"/></svg><span>Дій у тебе: 3. У зразку теж 3.</span></li>
-          </ul>
-        </div>
-
-        <div class="part">
-          <h3 class="part-h">Короткий запис</h3>
-          <div class="nb">
-            <p>AB — 8,4&nbsp;см</p>
-            <p>BC —&nbsp;?, на 3,7&nbsp;см більша, ніж AB</p>
-            <p>AC —&nbsp;?, на 5,1&nbsp;см більша, ніж BC</p>
-            <p>P —&nbsp;?</p>
-          </div>
-          <ul class="sc">
-            <li><span>Шукане записане зі знаком «?»: «P —&nbsp;?»?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
-            <li><span>Порівняння записані від шуканого: «BC —&nbsp;?, на 3,7&nbsp;см більша, ніж AB» і «AC —&nbsp;?, на 5,1&nbsp;см більша, ніж BC»?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
-            <li><span>Біля кожного числа є одиниця?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
-          </ul>
-        </div>
-
-        <div class="part">
-          <h3 class="part-h">Схема</h3>
-          <svg class="bars" viewBox="0 0 320 180" role="img" aria-label="Схема з відрізками: AB 8,4; BC на 3,7 більша; AC на 5,1 більша; периметр невідомий">
-            <text x="0" y="51">AB</text><text x="0" y="109">BC</text><text x="0" y="167">AC</text>
-            <rect class="base" x="36" y="36" width="100.8" height="20"/>
-            <rect class="base" x="36" y="94" width="100.8" height="20"/><rect class="extra" x="136.8" y="94" width="44.4" height="20"/>
-            <rect class="base" x="36" y="152" width="145.2" height="20"/><rect class="extra" x="181.2" y="152" width="61.2" height="20"/>
-            <line class="guide" x1="136.8" y1="36" x2="136.8" y2="172"/><line class="guide" x1="181.2" y1="94" x2="181.2" y2="172"/>
-            <text x="86.4" y="28" text-anchor="middle">8,4</text><text x="159" y="86" text-anchor="middle">3,7</text><text x="211.8" y="144" text-anchor="middle">5,1</text>
-            <text x="187" y="109">?</text><text x="248" y="167">?</text>
-            <path d="M268 36 q8 0 8 8 v56 l6 4 l-6 4 v56 q0 8 -8 8" fill="none" stroke="#555"/>
-            <text x="286" y="109">P ?</text>
-          </svg>
-          <ul class="sc">
-            <li><span>Схема того самого виду: відрізки?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
-            <li><span>«?» стоїть там, де шукане?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
-          </ul>
-        </div>
-
-        <div class="part">
-          <h3 class="part-h">Розв'язання</h3>
-          <div class="nb">
-            <p class="act">1) 8,4 + 3,7 = 12,1 (см) — довжина сторони BC;</p>
-            <p class="act">2) 12,1 + 5,1 = 17,2 (см) — довжина сторони AC;</p>
-            <p class="act">3) 8,4 + 12,1 + 17,2 = 37,7 (см) — периметр трикутника.</p>
-          </div>
-          <ul class="sc">
-            <li><span>Остання дія знаходить периметр трикутника?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
-            <li><span>Після кожної дії є пояснення?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
-          </ul>
-        </div>
-
-        <div class="part">
-          <h3 class="part-h">Відповідь</h3>
-          <div class="nb"><p class="nb-ans">Відповідь: периметр трикутника дорівнює 37,7&nbsp;см.</p></div>
-          <ul class="sc">
-            <li><span>Відповідь — повним реченням про периметр трикутника?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
-          </ul>
-        </div>
-
-        <div class="wrongat" data-show="shown">
-          <p>Де твій розв'язок пішов не так?</p>
-          <span class="yn pick"><button type="button" aria-pressed="false">Короткий запис</button><button type="button" aria-pressed="false">План</button><button type="button" aria-pressed="false">Обчислення</button></span>
-        </div>
-
-        <h3 class="rz-h">Перевірка</h3>
-        <ul class="checks">
-          <li><svg><use href="#i-check"/></svg><span>AC найдовша: 17,2&nbsp;см &gt; 12,1&nbsp;см &gt; 8,4&nbsp;см, як і на схемі.</span></li>
-          <li><svg><use href="#i-check"/></svg><span>AC − BC = 17,2 − 12,1 = 5,1&nbsp;см — як в умові.</span></li>
-          <li><svg><use href="#i-check"/></svg><span>Відповідь у сантиметрах.</span></li>
-        </ul>
-        <div class="key"><p class="key-k">Головне</p><p>«BC на 5,1&nbsp;см менша від AC» означає: AC більша за BC. Тому AC = BC + 5,1: у задачі слово «менша», а дія — додавання. Щоразу питай себе: шукане більше чи менше за дане?</p></div>
-      </section>
-    </div>
-    <footer class="bottom"><div class="bottom-in"><span class="sc-count">Перевірено: <b>0</b> з 8</span><button class="btn btn-primary" type="button" data-go="home">Далі</button></div></footer>
-  </section>
 </div>
 
 <!-- =====================================================================
@@ -1114,7 +955,7 @@
       </span>
       <span class="where">Рівень 2</span>
     </div></header>
-    <div class="note"><div><b>Option 3: daily goal + hearts.</b> A goal of 3 problems a day; with the notebook from Level 2 each problem takes longer, so the number is a placeholder for the trial's daily dose. 5 hearts a day. <b>A heart goes only when an answer has to be shown after two wrong tries; hints she asks for never cost one.</b> With no hearts left, new problems wait until tomorrow, but repeats and solved problems can still be done. <b>Repeats</b> sit in the level strip (↻), styled like the rest. The strongest pressure of the three: it is the only option that can stop her for the day. Here she has solved 2 problems today and lost one heart earlier.</div></div>
+    <div class="note"><div><b>Option 3: daily goal + hearts.</b> A goal of 3 problems a day; with the notebook from Level 2 each problem takes longer, so the number is a placeholder for the trial's daily dose. In Level 4 a problem may take 8–11 minutes, so a sitting holds 1–2: there a goal of 3 problems would rush her, so it would have to drop or count something other than problems. 5 hearts a day. <b>A heart goes only when an answer has to be shown after two wrong tries; hints she asks for never cost one.</b> With no hearts left, new problems wait until tomorrow, but repeats and solved problems can still be done. <b>Repeats</b> sit in the level strip (↻), styled like the rest. The strongest pressure of the three: it is the only option that can stop her for the day. Here she has solved 2 problems today and lost one heart earlier.</div></div>
     <div class="home">
       <main style="display:grid;gap:18px;align-content:start">
         <section class="today">
@@ -1175,19 +1016,43 @@
   <!-- ---------- handover (2.1) ---------- -->
   <section class="screen" data-screen="handover" aria-label="Варіант 3, новий етап">
     <p class="fallback-label">Варіант 3 · Сердечка · Новий етап (на задачі 2.1)</p>
-    <div class="note"><div><b>Handover as an unlock badge</b>: a new tool (the notebook) is "unlocked", with the hint rule said in hearts terms, since this is the option where a cost is most felt. Shown at 2.1, 2.5, 3.1, 4.1, 4.4 and 4.6; this is the 2.1 one.</div></div>
+    <div class="note"><div><b>Handover as an unlock badge</b>: a new tool (the notebook) is "unlocked", with the hint rule said in hearts terms, since this is the option where a cost is most felt. The new rule is the schedule's 2.1 draft. The app keeps checking every step: it names each action, she writes it in the notebook and types its result, which is checked before the next action opens; the answer sentence is then compared with the model. Shown at 2.1, 2.5, 3.1, 4.1, 4.4 and 4.6; this is the 2.1 one.</div></div>
     <div class="handover">
       <div class="badge3" aria-hidden="true"><svg><use href="#i-notebook"/></svg></div>
       <p class="ho-k">Новий етап · Рівень 2</p>
-      <h1 class="ho-title">Тепер дії і відповідь ти записуєш у зошит</h1>
+      <h1 class="ho-title">Тепер дії і відповідь ти записуєш у зошит.</h1>
+      <p class="ho-sub">Яку дію робити — підкажу.</p>
       <div class="split">
         <div class="split-row"><h3><svg><use href="#i-phone"/></svg>Тут, як і раніше</h3><div class="stepchips"><span>Перекажи</span><span>Знайти</span><span>Відомо</span><span>Порівняння</span><span>Тип і схема</span><span>План</span></div></div>
-        <div class="split-row paper"><h3><svg><use href="#i-notebook"/></svg>У зошиті</h3><div class="stepchips"><span>Обчисли</span><span>Відповідь</span></div><p>Результат кожної дії вводиш сюди. Потім звіряєш свій запис зі зразком.</p></div>
+        <div class="split-row paper"><h3><svg><use href="#i-notebook"/></svg>У зошиті</h3><div class="stepchips"><span>Обчисли</span><span>Відповідь</span></div><p>По одній дії: я називаю дію, ти записуєш її в зошит і вводиш сюди результат. Я його одразу перевіряю. Відповідь потім звіриш зі зразком.</p></div>
       </div>
       <p class="ho3-hint"><svg aria-hidden="true"><use href="#i-heart"/></svg>Кнопка «Підказка» сердечок не забирає.</p>
       <p class="ho-tip">Поклади поруч зошит і ручку.</p>
     </div>
     <footer class="bottom"><div class="bottom-in"><button class="btn btn-primary" type="button" data-go="problem">Почати</button></div></footer>
+  </section>
+
+  <!-- ---------- solo-try choice (4.6) ---------- -->
+  <section class="screen solo" data-screen="solo" aria-label="Варіант 3, вибір способу">
+    <p class="fallback-label">Варіант 3 · Сердечка · Вибір: крок за кроком чи сама (на задачі 4.6)</p>
+    <div class="note"><div><b>Solo-try choice (4.6) as an unlock.</b> What is "unlocked" is the choice, not the solo try, so the badge shows a fork and both ways stay equal. The 4.6 handover and the choice that opens the problem are one screen; at 4.7 and on replays after the set, the same choice opens the problem without the stage line. «Крок за кроком» is selected, so one tap on «Почати» carries on as before; «Спробую сама» takes one tap more. The two cards look alike, and neither is called harder or better. Solo: the problem text and the notebook; she writes the whole write-up and types the final answer. «Розбий на кроки» is always there. A wrong answer gets «Не сходиться. Розберімо крок за кроком.», and the steps run from the first one, as does «Розбий на кроки» (she taps «Готово» on parts she has already written). Her choice and any switch are recorded. Here «Почати» only notes the choice; the problem itself isn't mocked. <b>Hearts work the same for both</b>, and the screen says so: a wrong solo answer takes no heart; only an answer the app has to show in the steps after it takes one. <b>Open for this ticket:</b> should a solo success earn anything extra, such as a heart back? Nothing extra is shown: it would make step by step cost something by comparison.</div></div>
+    <div class="handover">
+      <div class="badge3" aria-hidden="true"><svg><use href="#i-fork"/></svg></div>
+      <p class="ho-k">Новий етап · Рівень 4</p>
+      <h1 class="ho-title">Тепер можеш спробувати розв'язати задачу сама.</h1>
+      <p class="ho-sub">Або, як і раніше, крок за кроком.</p>
+      <p class="problem-text">Остап, Марічка і Яким разом склали пазл із 360&nbsp;деталей. Остап склав 1/4 усіх деталей, Марічка — 2/5 усіх деталей, а Яким — решту. Скільки деталей склав Яким?</p>
+      <fieldset class="choice">
+        <legend>Як розв'язуватимеш цю задачу?</legend>
+        <div class="choice-opts">
+          <label class="opt"><input type="radio" name="solo3" value="steps" checked><span class="opt-box"><svg class="opt-ic" aria-hidden="true"><use href="#i-steps"/></svg><span class="opt-t">Крок за кроком</span><span class="opt-dot" aria-hidden="true"><svg><use href="#i-check"/></svg></span><span class="opt-d">Пишеш у зошит по одному кроку, і кожен одразу перевіряємо.</span></span></label>
+          <label class="opt"><input type="radio" name="solo3" value="solo"><span class="opt-box"><svg class="opt-ic" aria-hidden="true"><use href="#i-notebook"/></svg><span class="opt-t">Спробую сама</span><span class="opt-dot" aria-hidden="true"><svg><use href="#i-check"/></svg></span><span class="opt-d">Пишеш у зошит увесь розв'язок, а потім вводиш відповідь.</span></span></label>
+        </div>
+      </fieldset>
+      <p class="info-row"><svg aria-hidden="true"><use href="#i-info"/></svg><span>Кнопка «Розбий на кроки» є весь час. А якщо відповідь не зійдеться, розберемо задачу крок за кроком.</span></p>
+      <p class="ho3-hint"><svg aria-hidden="true"><use href="#i-heart"/></svg>Для сердечок обидва способи однакові.</p>
+    </div>
+    <footer class="bottom"><div class="bottom-in"><p class="solo-skip" role="status"></p><button class="btn btn-primary" type="button" data-solo-start>Почати</button><button class="btn btn-primary" type="button" data-go="home" data-solo-home hidden>На головну</button></div></footer>
   </section>
 
   <!-- ---------- problem stub ---------- -->
@@ -1214,7 +1079,7 @@
   <!-- ---------- end of problem 10 ---------- -->
   <section class="screen" data-screen="end" aria-label="Варіант 3, кінець задачі">
     <p class="fallback-label">Варіант 3 · Сердечка · Кінець задачі 10</p>
-    <div class="note"><div>The daily goal fills first, then the hearts, then the «Розбір». With hints only, the hearts stay and the screen says hints don't take them. With a shown result, a heart goes and the problem comes back at the end of the level.</div></div>
+    <div class="note"><div>The daily goal fills first, then the hearts, then the «Розбір». With hints only, the hearts stay and the screen says hints don't take them. With a shown result, a heart goes and the problem comes back at the end of the level. Every problem, problem 30 included, ends on this screen.</div></div>
     <div class="end">
       <div class="end-result r3">
         <div class="ring" aria-hidden="true">
@@ -1269,111 +1134,6 @@
     </div>
     <footer class="bottom"><div class="bottom-in"><button class="btn btn-primary" type="button" data-go="home">Далі</button></div></footer>
   </section>
-
-  <!-- ---------- end of a paper problem (30) ---------- -->
-  <section class="screen" data-screen="endpaper" aria-label="Варіант 3, кінець задачі в зошиті">
-    <p class="fallback-label">Варіант 3 · Сердечка · Кінець задачі 30 (у зошиті)</p>
-    <div class="note"><div><b>End of a paper problem</b> (4.7, the triangle, solved entirely in the notebook). Hearts count only a shown final answer, never the self-checks or «Підказка» (which in 4.6–4.7 brings back the checklist card).</div></div>
-    <div class="end">
-      <div class="end-result r3">
-        <div class="ring" aria-hidden="true">
-          <svg viewBox="0 0 120 120"><circle class="track" cx="60" cy="60" r="52"/><circle class="fill" cx="60" cy="60" r="52" style="stroke-dashoffset:0"/></svg>
-          <span class="ring-c"><span><b>3</b>з 3</span></span>
-        </div>
-        <h1 class="end-title">Мету на сьогодні виконано!</h1>
-        <p class="end-sub">Задачу розв'язано в зошиті.</p>
-        <div class="hearts-block">
-          <div class="hearts" aria-hidden="true">
-            <svg class="hrt h1"><use href="#i-heart"/></svg><svg class="hrt h2"><use href="#i-heart"/></svg><svg class="hrt h3"><use href="#i-heart"/></svg><svg class="hrt h4"><use href="#i-heart"/></svg><svg class="hrt empty"><use href="#i-heart"/></svg>
-          </div>
-          <p data-show="clean">Сердечка цілі: 4 з 5.</p>
-          <p data-show="hints">Сердечка цілі: 4 з 5. Підказки їх не забирають.</p>
-          <p class="lost-msg" data-show="shown">Мінус одне сердечко: відповідь довелося показати. Залишилося 3.</p>
-        </div>
-        <p class="again-row" data-show="shown"><svg aria-hidden="true"><use href="#i-again"/></svg>Ця задача ще раз з'явиться в кінці рівня 4.</p>
-      </div>
-      <section class="rozbir paper-rozbir">
-        <h2 class="rz-title">Розбір</h2>
-        <p class="rz-lead">Поклади зошит поруч і звір кожну частину зі зразком. Ці питання для тебе: «Ні» нічого не забирає.</p>
-        <div class="typed">
-          <ul>
-            <li data-show="clean hints"><svg aria-hidden="true"><use href="#i-check"/></svg><span>Твоя відповідь: 37,7&nbsp;см<span data-show="hints"> (з другої спроби)</span></span></li>
-            <li class="shown-ans" data-show="shown"><svg aria-hidden="true"><use href="#i-info"/></svg><span>Правильна відповідь: 37,7&nbsp;см</span></li>
-            <li><svg aria-hidden="true"><use href="#i-check"/></svg><span>Дій у тебе: 3. У зразку теж 3.</span></li>
-          </ul>
-        </div>
-
-        <div class="part">
-          <h3 class="part-h">Короткий запис</h3>
-          <div class="nb">
-            <p>AB — 8,4&nbsp;см</p>
-            <p>BC —&nbsp;?, на 3,7&nbsp;см більша, ніж AB</p>
-            <p>AC —&nbsp;?, на 5,1&nbsp;см більша, ніж BC</p>
-            <p>P —&nbsp;?</p>
-          </div>
-          <ul class="sc">
-            <li><span>Шукане записане зі знаком «?»: «P —&nbsp;?»?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
-            <li><span>Порівняння записані від шуканого: «BC —&nbsp;?, на 3,7&nbsp;см більша, ніж AB» і «AC —&nbsp;?, на 5,1&nbsp;см більша, ніж BC»?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
-            <li><span>Біля кожного числа є одиниця?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
-          </ul>
-        </div>
-
-        <div class="part">
-          <h3 class="part-h">Схема</h3>
-          <svg class="bars" viewBox="0 0 320 180" role="img" aria-label="Схема з відрізками: AB 8,4; BC на 3,7 більша; AC на 5,1 більша; периметр невідомий">
-            <text x="0" y="51">AB</text><text x="0" y="109">BC</text><text x="0" y="167">AC</text>
-            <rect class="base" x="36" y="36" width="100.8" height="20"/>
-            <rect class="base" x="36" y="94" width="100.8" height="20"/><rect class="extra" x="136.8" y="94" width="44.4" height="20"/>
-            <rect class="base" x="36" y="152" width="145.2" height="20"/><rect class="extra" x="181.2" y="152" width="61.2" height="20"/>
-            <line class="guide" x1="136.8" y1="36" x2="136.8" y2="172"/><line class="guide" x1="181.2" y1="94" x2="181.2" y2="172"/>
-            <text x="86.4" y="28" text-anchor="middle">8,4</text><text x="159" y="86" text-anchor="middle">3,7</text><text x="211.8" y="144" text-anchor="middle">5,1</text>
-            <text x="187" y="109">?</text><text x="248" y="167">?</text>
-            <path d="M268 36 q8 0 8 8 v56 l6 4 l-6 4 v56 q0 8 -8 8" fill="none" stroke="#555"/>
-            <text x="286" y="109">P ?</text>
-          </svg>
-          <ul class="sc">
-            <li><span>Схема того самого виду: відрізки?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
-            <li><span>«?» стоїть там, де шукане?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
-          </ul>
-        </div>
-
-        <div class="part">
-          <h3 class="part-h">Розв'язання</h3>
-          <div class="nb">
-            <p class="act">1) 8,4 + 3,7 = 12,1 (см) — довжина сторони BC;</p>
-            <p class="act">2) 12,1 + 5,1 = 17,2 (см) — довжина сторони AC;</p>
-            <p class="act">3) 8,4 + 12,1 + 17,2 = 37,7 (см) — периметр трикутника.</p>
-          </div>
-          <ul class="sc">
-            <li><span>Остання дія знаходить периметр трикутника?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
-            <li><span>Після кожної дії є пояснення?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
-          </ul>
-        </div>
-
-        <div class="part">
-          <h3 class="part-h">Відповідь</h3>
-          <div class="nb"><p class="nb-ans">Відповідь: периметр трикутника дорівнює 37,7&nbsp;см.</p></div>
-          <ul class="sc">
-            <li><span>Відповідь — повним реченням про периметр трикутника?</span><span class="yn"><button type="button" data-a="y" aria-pressed="false">Так</button><button type="button" data-a="n" aria-pressed="false">Ні</button></span><span class="fixit">Виправ у зошиті.</span></li>
-          </ul>
-        </div>
-
-        <div class="wrongat" data-show="shown">
-          <p>Де твій розв'язок пішов не так?</p>
-          <span class="yn pick"><button type="button" aria-pressed="false">Короткий запис</button><button type="button" aria-pressed="false">План</button><button type="button" aria-pressed="false">Обчислення</button></span>
-        </div>
-
-        <h3 class="rz-h">Перевірка</h3>
-        <ul class="checks">
-          <li><svg><use href="#i-check"/></svg><span>AC найдовша: 17,2&nbsp;см &gt; 12,1&nbsp;см &gt; 8,4&nbsp;см, як і на схемі.</span></li>
-          <li><svg><use href="#i-check"/></svg><span>AC − BC = 17,2 − 12,1 = 5,1&nbsp;см — як в умові.</span></li>
-          <li><svg><use href="#i-check"/></svg><span>Відповідь у сантиметрах.</span></li>
-        </ul>
-        <div class="key"><p class="key-k">Головне</p><p>«BC на 5,1&nbsp;см менша від AC» означає: AC більша за BC. Тому AC = BC + 5,1: у задачі слово «менша», а дія — додавання. Щоразу питай себе: шукане більше чи менше за дане?</p></div>
-      </section>
-    </div>
-    <footer class="bottom"><div class="bottom-in"><span class="sc-count">Перевірено: <b>0</b> з 8</span><button class="btn btn-primary" type="button" data-go="home">Далі</button></div></footer>
-  </section>
 </div>
 
 
@@ -1387,16 +1147,14 @@
   function variant() { return document.querySelector('.variant[data-variant="' + S.v + '"]'); }
   function press(sel, attr, val) { all(sel).forEach(function (b) { b.setAttribute("aria-pressed", String(b.getAttribute(attr) === val)); }); }
 
-  function countChecks(screen) {
-    var items = all(".sc li", screen);
-    var done = items.filter(function (li) { return li.querySelector('[aria-pressed="true"]'); }).length;
-    var out = screen.querySelector(".sc-count b");
-    if (out) out.textContent = String(done);
-  }
-  function clearChecks() {
-    all(".paper-rozbir [aria-pressed]").forEach(function (b) { b.setAttribute("aria-pressed", "false"); });
-    all(".sc li.is-no").forEach(function (li) { li.classList.remove("is-no"); });
-    all('.screen[data-screen="endpaper"]').forEach(countChecks);
+  // solo-try screens: «Почати» only notes the choice; leaving the screen undoes that, Reset also restores the default
+  function resetSolo(toDefault) {
+    all('.screen[data-screen="solo"]').forEach(function (s) {
+      s.querySelector(".solo-skip").textContent = "";
+      s.querySelector("[data-solo-start]").hidden = false;
+      s.querySelector("[data-solo-home]").hidden = true;
+      if (toDefault) s.querySelector('input[value="steps"]').checked = true;
+    });
   }
 
   function render(scroll) {
@@ -1410,6 +1168,7 @@
     press("[data-set-screen]", "data-set-screen", S.screen);
     press("[data-set-outcome]", "data-set-outcome", S.outcome);
     if (scroll === false) return;
+    resetSolo(false);
     window.scrollTo(0, 0);
     if (S.screen === "home") {
       var cur = all('.screen[data-screen="home"] [data-focus]', V).filter(function (e) { return e.offsetParent !== null; })[0];
@@ -1421,12 +1180,14 @@
   }
 
   document.addEventListener("click", function (e) {
-    var yn = e.target.closest(".paper-rozbir .yn button");
-    if (yn) {
-      var group = yn.parentNode;
-      all("button", group).forEach(function (b) { b.setAttribute("aria-pressed", String(b === yn)); });
-      var li = yn.closest(".sc li");
-      if (li) { li.classList.toggle("is-no", yn.dataset.a === "n"); countChecks(li.closest(".screen")); }
+    var start = e.target.closest("[data-solo-start]");
+    if (start) {
+      var scr = start.closest(".screen");
+      var picked = scr.querySelector("input:checked").closest(".opt").querySelector(".opt-t").textContent;
+      scr.querySelector(".solo-skip").textContent = "Обрано: «" + picked + "». Саму задачу в цьому прикладі пропущено.";
+      start.hidden = true;
+      var home = scr.querySelector("[data-solo-home]");
+      home.hidden = false; home.focus();
       return;
     }
     var t = e.target.closest("[data-go], [data-v], [data-set-screen], [data-set-outcome], #gear, #reset");
@@ -1444,7 +1205,7 @@
       var p = document.getElementById("mockpanel");
       p.hidden = !p.hidden; t.setAttribute("aria-expanded", String(!p.hidden)); return;
     } else if (t.id === "reset") {
-      after = {}; S.screen = "home"; S.outcome = "hints"; clearChecks();
+      after = {}; S.screen = "home"; S.outcome = "hints"; resetSolo(true);
     }
     render();
   });

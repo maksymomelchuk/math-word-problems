@@ -2,7 +2,7 @@
 
 Labels: wayfinder:task
 Status: open
-Assignee:
+Assignee: maksymomelchuk
 Blocked by: [How does the guidance fade across the problem set?](08-guidance-fading.md), [Write the 30 problems and their school write-ups](11-write-problems.md), [Build the guided-problem flow](12-build-guided-flow.md), [How does the Тип і схема step ask for the type so that it's clear to her?](15-clear-type-step.md), [Help her pick the operation in Обчисли](16-help-pick-operation.md)
 Parent: [Map](../MAP.md)
 
@@ -44,3 +44,49 @@ From [How does the guidance fade across the problem set?](08-guidance-fading.md)
 From [Build the guided-problem flow](12-build-guided-flow.md): add the problems to `poc/src/problems/problems.ts`, typed by `poc/src/problems/types.ts`. The tests run the checker (`poc/src/problems/validate.ts`) over every problem. Each action's id is shared across plans and used by the plan cards, and a problem's `Order:` lines become a `needs` list on each action.
 
 ## Comments
+
+### Note (2026-10-03, started early)
+
+Claimed by the orchestrator. Started before [How does the Тип і схема step ask for the type so that it's clear to her?](15-clear-type-step.md) and [Help her pick the operation in Обчисли](16-help-pick-operation.md) close, and in parallel with [Build the paper steps and the fading schedule](14-build-fading.md): the parent is away overnight, delegated everything, and asked for the real app by morning. The data is variant-independent: every version of Тип і схема reads the same `quote`, `id`, `note`, `type` and `hint`.
+
+Four agents, one per level, each in its own git worktree, write `poc/src/problems/level1.ts` to `level4.ts` (without 2.3 and 4.7, which exist). The orchestrator merges them into the main tree after the fading build, against the data contract in that ticket's note: `RecordLine.tag` (`'asked' | 'restated'`) with `compare` on restated lines, and `DirectionCheck.relationType`. The derived parts (valid plan lines, the asked-quantity option, the action count, «Хто більший?», the wrong-sign results) are code, in the fading build.
+
+### Progress (2026-10-03, data written)
+
+All 28 problems have their data, one file per level, each written in its own worktree against the contract. Each passes the validator, the type check and lint there. Each was compared word for word with [problem-set.md](../assets/problem-set.md) (texts, short records, every action line, other plans, `Order:` → `needs`, answers), and every action's arithmetic was rechecked exactly. They merge into the main tree after [Build the paper steps and the fading schedule](14-build-fading.md) lands.
+
+- `level1.ts` (1.1–1.7): full guided data, plus `level1.test.ts`. The tests check the texts against problem-set.md, that no wrong sign gives the right result, the tags, `relationType`, that menus have 3 options, at most one «Чому?», and a keyword-rule regex.
+- `level2.ts` (2.1, 2.2, 2.4–2.8): full guided data except the Відповідь menu. Missing references (2.1, 2.7) and unstated facts (2.4's cost, 2.8's «таких самих», 2.6's meeting time) get hidden questions in Відомо.
+- `level3.ts` (3.1–3.8): text, retell, asked, decode with «Чому?» (only where a comparison is given: 3.1, 3.2, 3.4, 3.8), relations and diagram. 3.7's two parts are drawn equal, so the picture doesn't answer «хто більше».
+- `level4.ts` (4.1–4.6): the decode and «Чому?» for 4.1–4.2. The orchestrator's addition: relations and a diagram for every problem, for «Яка схема в тебе?» and its model.
+
+Calls across levels:
+
+- **Sign hints** on every action whose wrong sign is a likely mistake. Levels 1 and 2 have them on every action, as 4.7 does.
+- **Direction checks** only on «у … разів», rate and motion actions with a known number to compare against, each with `relationType`. None on «дріб від числа».
+- **One clarification of the contract**: in 1.1–1.3 the «?» line is also the comparison line. It carries `tag: 'asked'` and `compare`, and any line with `compare` counts as a restated comparison.
+- **Two validator rules** needed easing: a fraction's numerator 1, and a number a unit change converts, both now count as used, as `check-problem-set.py` already did. They're passed to the fading build.
+
+**The parent's checklist** (after the merge and deploy): review the Ukrainian. That means the menus, hints, sign hints, direction questions, «Чому?», closing checks and key ideas in `poc/src/problems/level1.ts`–`level4.ts`, and the handover drafts in [fading-schedule.md](../assets/fading-schedule.md). The easiest way is to play each problem on the iPad with the stage switch. Note any line that reads wrong.
+
+### Progress (2026-10-04, merged and deployed)
+
+The four level files are merged into the main tree (`poc/src/problems/level1.ts`–`level4.ts`, plus `level1.test.ts`) and registered in `problems.ts`. All 30 problems pass the validator, including the fading build's new rule that each problem's data covers what its stage prompts. The type check, all 153 tests and lint pass. They're live at https://reliable-macaron-77e751.netlify.app, and the home screen lists 1.1–4.7. The checklist above stands. A proxy playthrough of every problem at its stage runs next.
+
+### Progress (2026-10-04, proxy playthrough)
+
+An agent played all 30 problems at their own stage on the live link in WebKit (820×1180, then 1180×820 and 390×844), each with deliberate mistakes on every kind of step, about 250 in all. Every hint matched its mistake. It fixed the data where needed (live since 2026-10-04):
+
+- 2.3's hint on «Час, за який хлопчик пройде 3000 м» wrongly said 20 min.
+- 1.3's «Чому?» named the operation before Обчисли, and its key idea is reworded.
+- 3.7's sign hints argued from a missing phrase, close to a keyword rule.
+- About 20 grammar and euphony fixes, such as «обидва швидкості» and «не в 3,7 раза».
+
+Two left:
+
+1. **3.7's plan-line option gives the answer away**: «на стільки більше риби наловив Денис, ніж Марко» tells her who caught more before she computes. The orchestrator's call: plan lines get their own optional wording (`line` on `Action`), used for the plan-line options and «Підказка». The write-up's explanation stays as the parent approved it. That's in the polish pass.
+2. **«Заплатив/Заплатила — 200 грн»** in the short records of 2.4 and 4.5 comes from the approved [problem-set.md](../assets/problem-set.md). Left for the parent's review.
+
+### Note (2026-10-04, 3.7 fixed)
+
+The 3.7 leak is fixed and live (`index-BJxR-Pgc.js`). `Action` has an optional `line`, the plan line's words when the explanation would give an answer away. 3.7 action 2's plan line reads «на скільки кілограмів один брат наловив більше, ніж інший». It's used for the plan-line options, the asked words and «Підказка»'s model lines. The write-up keeps the approved explanation. A new validator rule flags any plan line that names a name-answer option, and 3.7 was the only leak. Accepted as is: once she has picked 3.7's line 2, the write-up line «2) … — на стільки більше риби наловив Денис…» shows before she computes it. By then she has 2,85 against 2,45 in front of her, which is how «хто» is meant to be answered.
