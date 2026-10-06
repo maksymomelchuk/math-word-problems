@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { HOMEWORK } from '../problems/homework'
 import { PROBLEMS } from '../problems/problems'
 import { loadProgress, resetProgress } from '../lib/progress'
 import { clearSession } from '../guided/session'
@@ -13,7 +14,8 @@ import './screens.css'
 /**
  * For the parent, at `#/parent`: the trial records at a glance (what had to
  * be shown, her solo tries, a text copy), the switches, then every attempt
- * with its minutes, hints, shown answers and arithmetic slips, and a reset.
+ * (her homework's last) with its minutes, hints, shown answers and arithmetic
+ * slips, and a reset.
  * Not linked from her screens.
  */
 export function ParentView() {
@@ -50,7 +52,7 @@ export function ParentView() {
         <StageSwitchPanel progress={progress} />
         <TypeVariantPanel />
         <h2 className="records-heading">Усі спроби</h2>
-        {PROBLEMS.map((problem) => {
+        {[...PROBLEMS, ...HOMEWORK.map((homework) => homework.problem)].map((problem) => {
           const attempts = progress.problems[problem.id]?.attempts ?? []
           return (
             <section key={problem.id} className="record">

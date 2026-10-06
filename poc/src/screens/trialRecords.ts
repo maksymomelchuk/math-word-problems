@@ -123,9 +123,12 @@ function repeatWords(problem: GuidedProblem | undefined, pass: readonly Attempt[
   return items.length ? `повтор — знову ${shownWords(items)}` : 'повтор — без показу'
 }
 
+/** Her own attempts at the problem set, by problem. Homework is off the path, so it stays out of the summary. */
 function byProblem(progress: Progress): [string, OwnAttempt[]][] {
   const groups = new Map<string, OwnAttempt[]>()
-  for (const attempt of ownAttempts(progress)) groups.set(attempt.problemId, [...(groups.get(attempt.problemId) ?? []), attempt])
+  for (const attempt of ownAttempts(progress)) {
+    if (parseSlot(attempt.problemId)) groups.set(attempt.problemId, [...(groups.get(attempt.problemId) ?? []), attempt])
+  }
   return [...groups].sort(([a], [b]) => compareSlots(a, b))
 }
 

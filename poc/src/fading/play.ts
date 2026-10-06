@@ -2,10 +2,11 @@
  * How a problem plays when she opens it: its stage from its slot (or the
  * later stage, for a replay behind her furthest problem), her plan's step
  * size, the solo try, the handover and the step-size line. The parent's stage
- * switch overrides the stage. Pure, no UI code.
+ * switch overrides the stage. A homework problem always plays with every step
+ * prompted. Pure, no UI code.
  */
 import type { Progress } from '../lib/progress'
-import { compareSlots } from '../problems/slots'
+import { compareSlots, parseSlot } from '../problems/slots'
 import { learnerState } from './learner'
 import { handoverDue, isFinished, isRepeatDue } from './loop'
 import { STAGES, laterStage, playAt, stageOfSlot, type Play, type StageId, type StepSize } from './stages'
@@ -20,6 +21,8 @@ export const LAST_SLOT = '4.7'
 const OWN_PLAN: readonly StageId[] = ['3', '4a', '4b', '4c']
 
 export function resolvePlay(problemId: string, progress: Progress, stageSwitch: StageSwitch | null): Play {
+  // Homework is off the path: every step prompted, whatever her stage or the switch.
+  if (!parseSlot(problemId)) return playAt('1')
   const state = learnerState(progress)
   if (stageSwitch) {
     const { stage, stepSize } = stageSwitch

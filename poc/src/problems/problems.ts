@@ -1,3 +1,4 @@
+import { HOMEWORK } from './homework'
 import { LEVEL_1 } from './level1'
 import { LEVEL_2 } from './level2'
 import { LEVEL_3 } from './level3'
@@ -580,6 +581,7 @@ export const TRIANGLE: GuidedProblem = {
 
 export const PROBLEMS: readonly GuidedProblem[] = sortBySlot([...LEVEL_1, ...LEVEL_2, WALKING_BOY, ...LEVEL_3, ...LEVEL_4, TRIANGLE])
 
+/** A problem of the set, or one of her homework problems (`homework.ts`), which aren't on the path. */
 export function findProblem(id: string): GuidedProblem | undefined {
-  return PROBLEMS.find((problem) => problem.id === id)
+  return PROBLEMS.find((problem) => problem.id === id) ?? HOMEWORK.find((homework) => homework.problem.id === id)?.problem
 }

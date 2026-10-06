@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { HOMEWORK } from './homework'
 import { PROBLEMS, findProblem } from './problems'
 import type { GuidedProblem } from './types'
 import { validateProblem } from './validate'
@@ -17,6 +18,17 @@ function copy(id: string): GuidedProblem {
 describe('the problem data', () => {
   it('holds up for every problem', () => {
     for (const p of PROBLEMS) expect(validateProblem(p), p.id).toEqual([])
+  })
+
+  it('holds up for her homework, word for word from the textbook, off the problem set', () => {
+    for (const { problem: p } of HOMEWORK) {
+      expect(validateProblem(p, { homework: true }), p.id).toEqual([])
+      expect(PROBLEMS).not.toContain(p)
+    }
+    expect(problem('hw-6.2').text.map((part) => part.text).join('')).toBe(
+      'Два туристи вийшли назустріч один одному з міст, відстань між якими 15 км. Перший турист рухався зі швидкістю 4,8 км/год, а другий 5,6 км/год. Чи зустрінуться вони через 1,4 год?',
+    )
+    expect(validateProblem({ ...problem('hw-6.2'), id: '4.8' }, { homework: true }).join('\n')).toMatch(/must not take a problem-set slot/)
   })
 
   it('has the walking boy and the triangle word for word from problem-set.md', () => {

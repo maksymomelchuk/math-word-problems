@@ -3,6 +3,7 @@ import { emptyProgress, type Attempt, type HelpEvent, type LogEvent, type LogEve
 import { directionActive, fadeChanges, isMissed, learnerState, planOutcome } from './learner'
 import { handoverDue, isRepeatDue, levelFinished, nextProblem, repeatQueue, setFinished } from './loop'
 import { resolvePlay } from './play'
+import { playAt } from './stages'
 
 let clock = 0
 const at = () => new Date(Date.UTC(2026, 9, 3, 10, 0, clock++)).toISOString()
@@ -161,6 +162,14 @@ describe('how a problem plays when she opens it', () => {
     expect(play.handover).toMatch(/^Тепер короткий запис/)
     const checked = progressOf(['4.7', attempt({ switched: true })])
     expect(resolvePlay('2.3', checked, null)).toMatchObject({ stage: '2a' })
+  })
+
+  it('plays homework with every step prompted, and keeps it out of her furthest slot', () => {
+    const missed = attempt({ stage: '1', events: [{ at: at(), step: 'plan', help: 'shown' }] })
+    const ahead = progressOf(['4.7', attempt()], ['hw-6.2', missed])
+    expect(resolvePlay('hw-6.2', ahead, { stage: '3', stepSize: 'big' })).toEqual(playAt('1'))
+    expect(learnerState(ahead).furthest).toBe('4.7')
+    expect(resolvePlay('4.4', ahead, null)).toMatchObject({ stage: '4c' })
   })
 
   it('opens with the step-size line after a move, and marks a repeat', () => {

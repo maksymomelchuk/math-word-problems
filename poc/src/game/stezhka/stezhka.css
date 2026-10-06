@@ -119,6 +119,75 @@
   transform-origin: 50% 50%;
 }
 
+/* Her homework, under the XP and the goal: off the path, open from the start. */
+.st-hw {
+  display: grid;
+  gap: 8px;
+  max-width: 1100px;
+  margin: 8px auto 0;
+  list-style: none;
+}
+
+.st-hw-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 6px 8px 6px 12px;
+  color: var(--st-nb-ink);
+  text-decoration: none;
+  background: var(--blue-bg);
+  border: 2px solid #b8e3fb;
+  border-radius: 14px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.st-hw-link svg {
+  flex: none;
+}
+
+.st-hw-link:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.st-hw-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.st-hw-text small {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--blue-ink);
+}
+
+.st-hw-go {
+  flex: none;
+  padding: 8px 14px;
+  font-weight: 800;
+  color: #fff;
+  background: var(--blue-ink);
+  border-radius: 10px;
+  box-shadow: 0 3px 0 #08557c;
+}
+
+.st-hw-link[data-state='done'] .st-hw-go {
+  color: var(--blue-ink);
+  background: var(--surface);
+  box-shadow: 0 3px 0 #b8e3fb;
+}
+
+.st-hw-link:active .st-hw-go {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #08557c;
+}
+
 .st-switch {
   width: min(1100px, calc(100% - 2 * var(--pad-x)));
   margin: 14px auto 0;
@@ -921,6 +990,10 @@ button.st-node-btn:active,
 
   .st-parent-link:hover {
     color: var(--ink);
+  }
+
+  .st-hw-link:hover {
+    filter: brightness(1.03);
   }
 }
 

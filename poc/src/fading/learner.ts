@@ -6,7 +6,7 @@
  * alone. Pure functions, no UI code.
  */
 import type { Attempt, Progress } from '../lib/progress'
-import { compareSlots } from '../problems/slots'
+import { compareSlots, parseSlot } from '../problems/slots'
 import type { ProblemTypeId } from '../problems/types'
 import type { StepSize } from './stages'
 
@@ -24,7 +24,7 @@ export type LearnerState = {
   /** She moved between small and big steps after her last plan and hasn't seen its line yet. */
   justMoved: StepSize | null
   direction: Partial<Record<ProblemTypeId, DirectionFade>>
-  /** The furthest slot she has opened. Replays behind it run at its stage. */
+  /** The furthest slot she has opened. Replays behind it run at its stage. Homework, off the path, never counts. */
   furthest: string | null
 }
 
@@ -143,7 +143,8 @@ export function learnerState(progress: Progress): LearnerState {
         justMoved = 'small'
       }
     }
-    const furthest = state.furthest === null || compareSlots(attempt.problemId, state.furthest) > 0 ? attempt.problemId : state.furthest
+    const onPath = parseSlot(attempt.problemId) !== null
+    const furthest = onPath && (state.furthest === null || compareSlots(attempt.problemId, state.furthest) > 0) ? attempt.problemId : state.furthest
     state = { stepSize, planStreak, justMoved, direction: stepDirection(state.direction, attempt), furthest }
   }
   return state

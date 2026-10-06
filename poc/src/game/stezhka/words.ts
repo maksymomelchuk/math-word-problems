@@ -25,6 +25,8 @@ export const WORDS = {
   setDone: 'Усі 30 задач пройдено!',
   setFree: 'Тепер можна повертатися до будь-якої задачі.',
   forParent: 'Для батьків',
+  homework: 'Домашнє завдання',
+  again: 'Ще раз',
 }
 
 /** The bird's line on the end-of-problem screen. Only the line changes with how it went: nothing is ever taken away. */
@@ -79,6 +81,19 @@ export function nodeLabel(number: number, repeat: boolean, state: 'done' | 'next
   if (state === 'locked') return `${name}: ще ${repeat ? 'закритий' : 'закрита'}`
   if (state === 'next') return `${name}: ${open ? 'продовжити' : 'почати'}`
   return `${name}: розв'язано${open ? ', продовжити' : ', відкрити ще раз'}`
+}
+
+/** A homework problem not opened yet, open now, or solved at least once. */
+export type HomeworkState = 'new' | 'open' | 'done'
+
+/** The word on a homework link's button. */
+export const HOMEWORK_GO: Record<HomeworkState, string> = { new: WORDS.start, open: WORDS.resume, done: WORDS.again }
+
+const HOMEWORK_ACTION: Record<HomeworkState, string> = { new: 'почати', open: 'продовжити', done: "розв'язано, відкрити ще раз" }
+
+/** A homework link's name for a screen reader: «Домашнє завдання, Завдання 6, задача 2: почати». */
+export function homeworkLabel(title: string, state: HomeworkState): string {
+  return `${WORDS.homework}, ${title}: ${HOMEWORK_ACTION[state]}`
 }
 
 export function finishOpenFirst(number: number): string {

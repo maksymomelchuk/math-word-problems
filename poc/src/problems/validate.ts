@@ -167,14 +167,17 @@ function cellSlots(cell: TableCell): string[] {
   return 'slot' in cell ? [cell.slot] : []
 }
 
-export function validateProblem(problem: GuidedProblem): string[] {
+/** `homework`: one of her homework problems, which is off the path, so its id mustn't be a slot. */
+export function validateProblem(problem: GuidedProblem, { homework = false } = {}): string[] {
   const errors: string[] = []
   const at = (where: string) => `${problem.id} ${where}`
   const { writeUp, steps } = problem
 
   // the slot, which gives the problem its stage
   const slot = parseSlot(problem.id)
-  if (!slot) errors.push(at('id: not a problem-set slot such as 2.3'))
+  if (homework) {
+    if (slot) errors.push(at('id: a homework problem must not take a problem-set slot'))
+  } else if (!slot) errors.push(at('id: not a problem-set slot such as 2.3'))
   else if (slot.level !== problem.level) errors.push(at(`level ${problem.level} doesn't match the slot`))
 
   // the text
