@@ -1,0 +1,17 @@
+[Unit]
+Description=Homework bot: her Telegram photos become problems in the word-problem trainer
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=homework
+WorkingDirectory=/home/homework/math
+EnvironmentFile=/etc/homework-bot.env
+# Claude Code's native installer puts it in ~/.local/bin.
+Environment=PATH=/home/homework/.local/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/usr/bin/node homework-bot/bot.ts
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

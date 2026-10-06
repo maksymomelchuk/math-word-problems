@@ -1,0 +1,19 @@
+{
+  "name": "homework-bot",
+  "private": true,
+  "type": "module",
+  "description": "Her Telegram photos of word problems become homework problems in the word-problem trainer",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "start": "node bot.ts",
+    "add": "node add.ts",
+    "test": "node --test *.test.ts",
+    "typecheck": "tsc"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.3",
+    "typescript": "~6.0.2"
+  }
+}
