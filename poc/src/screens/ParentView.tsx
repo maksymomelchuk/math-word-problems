@@ -1,105 +1,85 @@
 import { useState } from 'react'
 import { PROBLEMS } from '../problems/problems'
-import { STEP_NAMES, type GuidedProblem, type StepId } from '../problems/types'
-import { loadProgress, resetProgress, type Attempt, type HelpEvent } from '../lib/progress'
+import { loadProgress, resetProgress } from '../lib/progress'
 import { clearSession } from '../guided/session'
-import { typePartName } from '../guided/typeStep/typeChecks'
 import { clearTries } from '../guided/typeStep/tryMode'
-import { variantLabel } from '../guided/typeStep/variants'
+import { saveStageSwitch } from '../fading/stageSwitch'
+import { describeAttemptHeading, describeHelp, describeLog } from './logWords'
+import { StageSwitchPanel } from './StageSwitchPanel'
+import { TrialSummary } from './TrialSummary'
 import { TypeVariantPanel } from './TypeVariantPanel'
 import './screens.css'
 
-const time = new Intl.DateTimeFormat('uk-UA', { dateStyle: 'medium', timeStyle: 'short' })
-
-const PART_NAMES: Record<string, string> = {
-  question: 'питання в тексті',
-  unknown: 'що шукаємо',
-  why: '«Чому?»',
-  types: 'типи',
-  diagram: 'схема',
-}
-
-/** The part of a step in words: the number, the comparison or the action itself. */
-function partName(problem: GuidedProblem, step: StepId, part: string): string {
-  if (PART_NAMES[part]) return PART_NAMES[part]
-  if (part.startsWith('hidden-')) return 'приховане'
-  if (step === 'typeDiagram') return typePartName(problem.steps.typeDiagram?.relations ?? [], part) ?? part
-  if (step === 'given') return `«${problem.text.find((p) => p.number === part)?.text ?? part}»`
-  if (step === 'decode') {
-    const id = part.replace(/-flip$/, '')
-    const sentence = problem.steps.decode?.comparisons.find((c) => c.id === id)?.sentence ?? id
-    return part.endsWith('-flip') ? `«${sentence}», від шуканого` : `«${sentence}», хто більший`
-  }
-  if (step === 'compute') {
-    const id = part.replace(/-direction$/, '')
-    const explanation = problem.writeUp.plans.flatMap((p) => p.actions).find((a) => a.id === id)?.explanation ?? id
-    return part.endsWith('-direction') ? `${explanation}, більше чи менше` : explanation
-  }
-  return part
-}
-
-function helpName(event: HelpEvent): string {
-  if (event.slip) return event.help === 'shown' ? 'помилка в обчисленні, показано' : 'помилка в обчисленні'
-  return event.help === 'shown' ? 'показано відповідь' : 'підказка'
-}
-
-function describe(problem: GuidedProblem, attempt: Attempt): string {
-  if (!attempt.events.length) return 'без підказок'
-  return attempt.events
-    .map((event) => {
-      const part = event.part ? ` (${partName(problem, event.step, event.part)})` : ''
-      const sign = event.sign ? `, знак «${event.sign}»` : ''
-      return `${STEP_NAMES[event.step]}${part}: ${helpName(event)}${sign}`
-    })
-    .join('; ')
-}
-
 /**
- * For the parent, at `#/parent`: what is recorded on this device (every
- * attempt, with its hints, shown answers and arithmetic slips), and a reset.
+ * For the parent, at `#/parent`: the trial records at a glance (what had to
+ * be shown, her solo tries, a text copy), the switches, then every attempt
+ * with its minutes, hints, shown answers and arithmetic slips, and a reset.
  * Not linked from her screens.
  */
 export function ParentView() {
   const [progress, setProgress] = useState(loadProgress)
 
   function reset() {
-    if (!window.confirm('Стерти всі записи на цьому пристрої? Цього не можна скасувати.')) return
+    if (
+      !window.confirm(
+        'Стерти всі записи на цьому пристрої? Цього не можна скасувати. Якщо потрібна копія, спершу натисніть «Скопіювати записи» вгорі. Перемикач етапів теж вимкнеться.',
+      )
+    )
+      return
     resetProgress()
     clearSession()
     clearTries()
+    saveStageSwitch(null)
     setProgress(loadProgress())
   }
 
   return (
     <div className="page page--parent">
       <header className="page-header">
+        <a className="page-back" href="#/">
+          <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M14.5 6 8.5 12l6 6" />
+          </svg>
+          До задач
+        </a>
         <h1 className="page-title">Для батьків</h1>
         <p className="page-lead">Що записано на цьому пристрої. Записи нікуди не надсилаються.</p>
       </header>
       <main>
+        <TrialSummary progress={progress} />
+        <StageSwitchPanel progress={progress} />
         <TypeVariantPanel />
+        <h2 className="records-heading">Усі спроби</h2>
         {PROBLEMS.map((problem) => {
           const attempts = progress.problems[problem.id]?.attempts ?? []
           return (
             <section key={problem.id} className="record">
-              <h2 className="record-title">
+              <h3 className="record-title">
                 {problem.id} · {problem.story}
-              </h2>
+              </h3>
               {!attempts.length ? (
                 <p className="record-empty">Ще не відкривали.</p>
               ) : (
                 <ol className="attempts">
-                  {attempts.map((attempt) => (
-                    <li key={attempt.startedAt}>
-                      <p>
-                        <strong>{time.format(new Date(attempt.startedAt))}</strong>
-                        {attempt.finishedAt ? ` — розв'язано о ${time.format(new Date(attempt.finishedAt))}` : ' — не завершено'}
-                        {attempt.plan !== undefined && `, план ${attempt.plan + 1}`}
-                        {attempt.variants?.typeDiagram && `, «Тип і схема»: ${variantLabel(attempt.variants.typeDiagram)}`}
-                      </p>
-                      <p className="attempt-events">{describe(problem, attempt)}</p>
-                    </li>
-                  ))}
+                  {attempts.map((attempt) => {
+                    const heading = describeAttemptHeading(attempt)
+                    return (
+                      <li key={attempt.startedAt}>
+                        <p>
+                          <strong>{heading.when}</strong>
+                          {heading.rest}
+                        </p>
+                        {(attempt.events.length > 0 || !attempt.log?.length) && <p className="attempt-events">{describeHelp(problem, attempt)}</p>}
+                        {!!attempt.log?.length && (
+                          <ul className="attempt-log">
+                            {describeLog(problem, attempt).map((line, i) => (
+                              <li key={i}>{line}</li>
+                            ))}
+                          </ul>
+                        )}
+                      </li>
+                    )
+                  })}
                 </ol>
               )}
             </section>

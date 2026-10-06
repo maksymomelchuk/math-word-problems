@@ -163,6 +163,12 @@ export function DiagramGallery() {
   return (
     <div className="page page--parent">
       <header className="page-header">
+        <a className="page-back" href="#/parent">
+          <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M14.5 6 8.5 12l6 6" />
+          </svg>
+          Для батьків
+        </a>
         <h1 className="page-title">Зразки схем</h1>
         <p className="page-lead">Торкнись порожнього місця, потім числа.</p>
       </header>

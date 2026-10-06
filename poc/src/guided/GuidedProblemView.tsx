@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import type { GuidedProblem } from '../problems/types'
-import { PROGRESS_VERSION, finishAttempt, recordHelp, recordPlan, recordVariant, startAttempt } from '../lib/progress'
+import { PROGRESS_VERSION, finishAttempt, loadProgress, recordHelp, recordLog, recordPlan, recordVariant, startAttempt, type LogEvent } from '../lib/progress'
+import { resolvePlay, switchKey } from '../fading/play'
+import { loadStageSwitch } from '../fading/stageSwitch'
+import { FULLY_GUIDED, type Play } from '../fading/stages'
 import { loadTypeStepVariant } from './typeStep/variants'
 import { FlowContext, type FlowContextValue } from './context'
-import { buildScreens, emptyNotebook, stepsShown, type Screen } from './flow'
+import { buildScreens, emptyNotebook, promptedSteps, stepGuidance, type Notebook, type Screen } from './flow'
 import { clearSession, loadSession, saveSession, type Session } from './session'
 import { AskedTapScreen } from './screens/AskedTapScreen'
 import { ChoiceScreen } from './screens/ChoiceScreen'
@@ -14,6 +17,14 @@ import { GivenScreen } from './screens/GivenScreen'
 import { PlanScreen } from './screens/PlanScreen'
 import { ReviewScreen } from './screens/ReviewScreen'
 import { TypesScreen } from './screens/TypesScreen'
+import { HandoverScreen } from './paper/HandoverScreen'
+import { NextStepScreen } from './paper/NextStepScreen'
+import { PaperComputeScreen } from './paper/PaperComputeScreen'
+import { PaperStepScreen } from './paper/PaperStepScreen'
+import { PlanLineScreen } from './paper/PlanLineScreen'
+import { PlanWholeScreen } from './paper/PlanWholeScreen'
+import { SoloChoiceScreen } from './paper/SoloChoiceScreen'
+import { SoloScreen } from './paper/SoloScreen'
 import './guided.css'
 
 type GuidedProblemViewProps = {
@@ -21,25 +32,44 @@ type GuidedProblemViewProps = {
   onExit: () => void
 }
 
+/** The saved session for this problem, if it was started under the same stage switch. */
+function resumable(problem: GuidedProblem): Session | null {
+  const saved = loadSession()
+  if (saved?.problemId !== problem.id) return null
+  return (saved.switchKey ?? '') === switchKey(loadStageSwitch()) ? saved : null
+}
+
+function screensOf(problem: GuidedProblem, play: Play, notebook: Notebook): Screen[] {
+  return buildScreens(problem, notebook.plan, play, notebook)
+}
+
 /**
- * One guided problem, screen by screen. Picks up a saved session for this
- * problem, or starts a new attempt in the progress record.
+ * One problem, screen by screen, at the stage its slot gives it (or the
+ * parent's stage switch). Picks up a saved session for this problem, or starts
+ * a new attempt in the progress record.
  */
 export function GuidedProblemView({ problem, onExit }: GuidedProblemViewProps) {
-  const [session, setSession] = useState<Session | null>(() => {
-    const saved = loadSession()
-    return saved?.problemId === problem.id ? saved : null
-  })
+  const [session, setSession] = useState<Session | null>(() => resumable(problem))
   const starting = useRef(false)
 
   useEffect(() => {
     if (session || starting.current) return
     starting.current = true
-    const startedAt = startAttempt(problem.id, stepsShown(buildScreens(problem, null)))
-    setSession({ version: PROGRESS_VERSION, problemId: problem.id, startedAt, index: 0, notebook: emptyNotebook() })
+    const stageSwitch = loadStageSwitch()
+    const play = resolvePlay(problem.id, loadProgress(), stageSwitch)
+    const ownPlan = stepGuidance(problem, 'plan', play).mode === 'paper'
+    const startedAt = startAttempt(problem.id, promptedSteps(problem, play), new Date(), undefined, {
+      stage: play.stage,
+      ...(ownPlan ? { stepSize: play.stepSize } : {}),
+      ...(play.switched ? { switched: true } : {}),
+      ...(play.repeat ? { repeat: true } : {}),
+    })
+    if (play.stepMove) recordLog(problem.id, startedAt, { at: startedAt, step: 'start', kind: 'stepSize', size: play.stepMove })
+    setSession({ version: PROGRESS_VERSION, problemId: problem.id, startedAt, index: 0, notebook: emptyNotebook(), play, switchKey: switchKey(stageSwitch) })
   }, [session, problem])
 
-  const screens = session ? buildScreens(problem, session.notebook.plan) : []
+  const play = session?.play ?? FULLY_GUIDED
+  const screens = session ? screensOf(problem, play, session.notebook) : []
   const index = session ? Math.min(session.index, screens.length - 1) : 0
   const atReview = screens[index]?.kind === 'review'
   const planChoice = session?.notebook.plan?.plan
@@ -72,9 +102,10 @@ export function GuidedProblemView({ problem, onExit }: GuidedProblemViewProps) {
     notebook: session.notebook,
     screens,
     index,
+    play,
     update: (change) => setSession((s) => s && { ...s, notebook: change(s.notebook) }),
     next: () => {
-      setSession((s) => s && { ...s, index: Math.min(s.index + 1, buildScreens(problem, s.notebook.plan).length - 1) })
+      setSession((s) => s && { ...s, index: Math.min(s.index + 1, screensOf(problem, s.play ?? FULLY_GUIDED, s.notebook).length - 1) })
     },
     record: (event) =>
       recordHelp(problem.id, session.startedAt, {
@@ -82,6 +113,7 @@ export function GuidedProblemView({ problem, onExit }: GuidedProblemViewProps) {
         ...event,
         ...(event.step === 'typeDiagram' ? { variant: loadTypeStepVariant() } : {}),
       }),
+    log: (event) => recordLog(problem.id, session.startedAt, { at: new Date().toISOString(), ...event } as LogEvent),
     exit: onExit,
     finish: onExit,
   }
@@ -122,5 +154,21 @@ function ScreenView({ screen, problem }: { screen: Screen; problem: GuidedProble
       return <ChoiceScreen step="answer" choice={steps.answer!} settle={(n) => ({ ...n, answered: true })} />
     case 'review':
       return <ReviewScreen />
+    case 'handover':
+      return <HandoverScreen />
+    case 'soloChoice':
+      return <SoloChoiceScreen />
+    case 'solo':
+      return <SoloScreen />
+    case 'nextStep':
+      return <NextStepScreen due={screen.step} />
+    case 'paper':
+      return <PaperStepScreen step={screen.step} />
+    case 'planWhole':
+      return <PlanWholeScreen />
+    case 'planLine':
+      return <PlanLineScreen line={screen.line} big={screen.big} />
+    case 'paperCompute':
+      return <PaperComputeScreen position={screen.position} withPlan={!!screen.withPlan} />
   }
 }

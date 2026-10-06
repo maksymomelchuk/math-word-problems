@@ -8,6 +8,9 @@
     <title>Тренажер задач</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="manifest" href="/manifest.webmanifest" />
+    <!-- Her text is Cyrillic with Latin digits and punctuation: fetch both faces with the page, so the first screen doesn't reflow when they arrive. -->
+    <link rel="preload" href="/node_modules/@fontsource-variable/nunito/files/nunito-cyrillic-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/node_modules/@fontsource-variable/nunito/files/nunito-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />

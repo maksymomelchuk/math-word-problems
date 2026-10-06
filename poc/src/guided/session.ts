@@ -4,6 +4,7 @@
  * Only one problem is open at a time.
  */
 import { PROGRESS_VERSION, type ProgressStorage } from '../lib/progress'
+import type { Play } from '../fading/stages'
 import type { Notebook } from './flow'
 
 export type Session = {
@@ -14,6 +15,10 @@ export type Session = {
   /** The screen she is on. */
   index: number
   notebook: Notebook
+  /** How this attempt plays. Missing in a problem left open before fading: it plays fully guided. */
+  play?: Play
+  /** The parent's stage switch when it started (`fading/play.ts`), so a change of switch starts the problem over. */
+  switchKey?: string
 }
 
 export const SESSION_KEY = 'word-problem-poc:session'

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { Verdict } from '../checks'
 import { useFlow } from '../context'
-import { applyWrites } from '../flow'
+import { writesAt } from '../flow'
 import { Dock } from '../layout/Dock'
 import { FlowLayout } from '../layout/FlowLayout'
 import { ProblemText } from '../layout/ProblemText'
@@ -17,7 +17,7 @@ type DecodeScreenProps = { index: number; stage: 'bigger' | 'flip' }
  * doesn't start from the unknown, the sentence said again from its side.
  */
 export function DecodeScreen({ index, stage }: DecodeScreenProps) {
-  const { problem, notebook, update, next } = useFlow()
+  const { problem, notebook, play, update, next } = useFlow()
   const tries = useTries('decode')
   const { comparisons } = problem.steps.decode!
   const comparison = comparisons[index]
@@ -39,10 +39,10 @@ export function DecodeScreen({ index, stage }: DecodeScreenProps) {
     const verdict: Verdict = picked === right ? { kind: 'right' } : { kind: 'wrong', hint: question.hint }
     tries.submit(verdict, {
       part: stage === 'flip' ? `${comparison.id}-flip` : comparison.id,
-      explain: last ? comparison.explain : `Більша ${comparison.bigger.answer}.`,
+      explain: last ? comparison.explain : `Так, ${comparison.bigger.answer}.`,
       onHint: () => setMarkedWrong(picked),
       settle: () => {
-        if (last) update((n) => ({ ...n, record: applyWrites(problem, n.record, comparison) }))
+        if (last) update((n) => ({ ...n, record: writesAt(problem, play, n.record, comparison) }))
       },
     })
   }
@@ -62,7 +62,7 @@ export function DecodeScreen({ index, stage }: DecodeScreenProps) {
             <p className="task-prompt">Шукане більше чи менше за дане? Хто тут більший?</p>
           ) : (
             <>
-              <p className="task-prompt">Скажи те саме, почавши з невідомої сторони:</p>
+              <p className="task-prompt">Скажи те саме, почавши з невідомого:</p>
               <p className="quote quote--frame">
                 {comparison.flip!.frame.split('___').map((piece, i, pieces) => (
                   <span key={i}>

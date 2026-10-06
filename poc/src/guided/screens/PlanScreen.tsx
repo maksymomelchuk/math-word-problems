@@ -14,11 +14,11 @@ import { useTries } from '../useTries'
  * is a distractor. Without a slot count she decides how many actions.
  */
 export function PlanScreen() {
-  const { problem, notebook, update, next } = useFlow()
+  const { problem, notebook, play, update, next } = useFlow()
   const tries = useTries('plan')
   const step = problem.steps.plan!
   const { plans } = problem.writeUp
-  const slots = shownSlotCount(problem)
+  const slots = shownSlotCount(problem, play)
   const capacity = slots ?? step.cards.length
   const [order, setOrder] = useState<string[]>([])
   const [wrong, setWrong] = useState(false)

@@ -1,4 +1,4 @@
-/* The list of problems and the parent's pages. */
+/* The parent's pages: «Для батьків», the diagram samples and the Тип і схема try. */
 
 .page {
   --pad-x: max(16px, env(safe-area-inset-left), env(safe-area-inset-right));
@@ -16,8 +16,29 @@
   margin-bottom: 18px;
 }
 
+/* Back to her path from the top too: the home-screen app has no back button, and the page is long. */
+.page-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 44px;
+  margin: -6px 0 4px -6px;
+  padding: 0 10px 0 2px;
+  font-weight: 800;
+  color: var(--blue-ink);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.page-back:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 0;
+}
+
 .page-title {
-  font-size: 1.875rem;
+  font-size: var(--text-2xl);
   font-weight: 800;
   line-height: 1.2;
 }
@@ -27,87 +48,11 @@
   color: var(--muted);
 }
 
-.level + .level {
-  margin-top: 22px;
-}
-
-.problem-list {
-  display: grid;
-  gap: 10px;
-  list-style: none;
-}
-
-.problem-link {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 4px 12px;
-  margin-bottom: 4px;
-  padding: 14px 16px;
-  color: inherit;
-  text-decoration: none;
-  background: var(--surface);
-  border: 2px solid var(--line);
-  border-radius: var(--radius-card);
-  box-shadow: 0 4px 0 var(--line);
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  transition:
-    transform 90ms var(--ease-out),
-    box-shadow 90ms var(--ease-out);
-}
-
-.problem-link:active {
-  transform: translateY(4px);
-  box-shadow: 0 0 0 var(--line);
-  transition-duration: 0s;
-}
-
-.problem-link:focus-visible {
-  outline: 3px solid var(--blue);
-  outline-offset: 2px;
-}
-
-.problem-link-number {
-  font-size: 1.125rem;
-  font-weight: 800;
-}
-
-.problem-link-preview {
-  grid-column: 1;
-  display: -webkit-box;
-  overflow: hidden;
-  font-size: 0.9375rem;
-  color: var(--muted);
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-}
-
-.problem-link-status {
-  grid-column: 2;
-  grid-row: 1 / span 2;
-  align-self: center;
-  padding: 6px 12px;
-  font-size: 0.9375rem;
-  font-weight: 800;
-  color: #fff;
-  background: var(--green-button);
-  border-radius: 999px;
-}
-
-.problem-link[data-status='open'] .problem-link-status {
-  background: var(--blue-ink);
-}
-
-.problem-link[data-status='solved'] .problem-link-status {
-  color: var(--green-ink);
-  background: var(--green-bg);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .problem-link:hover {
-    background: var(--surface-hover);
-  }
+/* Inside a section, a lead is a note under its title: the same size as the summary's. */
+.record .page-lead,
+.sample .page-lead {
+  margin-bottom: 10px;
+  font-size: var(--text-sm);
 }
 
 /* The parent's pages. */
@@ -124,6 +69,7 @@
 }
 
 .record-empty {
+  font-size: 1rem;
   color: var(--muted);
 }
 
@@ -131,11 +77,17 @@
   display: grid;
   gap: 10px;
   padding-left: 1.4em;
-  font-size: 0.9375rem;
+  font-size: var(--text-sm);
 }
 
 .attempt-events {
   color: var(--muted);
+}
+
+.parent-actions .text-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
 }
 
 .parent-actions {
@@ -152,33 +104,70 @@
   color: var(--blue-ink);
 }
 
-.text-link--quiet {
-  display: inline-block;
-  padding: 12px 0;
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: var(--muted);
-}
-
-.page-footer {
-  margin-top: 28px;
-  text-align: center;
-}
-
 .danger-button {
-  min-height: 44px;
+  min-height: 48px;
+  margin-bottom: 3px; /* room for the 3D edge */
   margin-left: auto;
-  padding: 0 16px;
+  padding: 0 18px;
   font-weight: 800;
   color: var(--red-ink);
   background: var(--surface);
   border: 2px solid var(--red);
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 3px 0 var(--red);
   cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform var(--dur-press) var(--ease-out),
+    box-shadow var(--dur-press) var(--ease-out),
+    background-color var(--dur-state) ease;
+}
+
+.danger-button:active {
+  background: var(--red-bg);
+  box-shadow: 0 0 0 var(--red);
+  transform: translateY(3px);
+  transition-duration: 0s;
+}
+
+.danger-button:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .danger-button:hover {
+    background: var(--red-bg);
+  }
+
+  .page-back:hover,
+  .text-link:hover {
+    color: var(--ink);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .problem-link {
+  .danger-button {
     transition: none;
   }
+}
+
+/* The paper steps' records under an attempt, one per line. */
+.attempt-log {
+  display: grid;
+  gap: 2px;
+  padding-left: 1.1em;
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+
+.step-size-options {
+  margin-top: 10px;
+}
+
+.stage-panel > summary {
+  min-height: 44px;
+  padding: 10px 0;
+  cursor: pointer;
 }

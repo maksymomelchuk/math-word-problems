@@ -56,7 +56,7 @@ export function Bars({ diagram, fill, control }: BarsProps) {
               x += width
               return (
                 <g key={p}>
-                  <rect className={piece.extra ? 'bar bar--extra' : 'bar'} x={left} y={barTop(r)} width={width} height={BAR} />
+                  <rect className={piece.missing ? 'bar bar--missing' : piece.extra ? 'bar bar--extra' : 'bar'} x={left} y={barTop(r)} width={width} height={BAR} />
                   {piece.label !== undefined && <SvgLabel label={piece.label} x={left + width / 2} y={rowTop(r) + band / 2 - 2} fill={fill} control={control} />}
                 </g>
               )

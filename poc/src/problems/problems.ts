@@ -1,12 +1,22 @@
+import { LEVEL_1 } from './level1'
+import { LEVEL_2 } from './level2'
+import { LEVEL_3 } from './level3'
+import { LEVEL_4 } from './level4'
+import { sortBySlot } from './slots'
 import type { GuidedProblem } from './types'
 
 /**
  * The problem set's guided problems, in problem-set order. Texts, write-ups and
  * plans follow `.scratch/word-problem-poc/assets/problem-set.md` word for word;
  * the guided steps are ported from the clickable mock `guided-flow-mock.html`.
+ *
+ * Each problem plays at the stage its slot (`id`) gives it, whatever data it
+ * carries (`../fading/stages.ts`). The other 28 problems come from
+ * `level1.ts`…`level4.ts`, each exporting a `GuidedProblem[]`: add them to
+ * the list at the bottom, and `sortBySlot` puts every problem in slot order.
  */
 
-const walkingBoy: GuidedProblem = {
+export const WALKING_BOY: GuidedProblem = {
   id: '2.3',
   level: 2,
   story: 'Хлопчик',
@@ -22,7 +32,7 @@ const walkingBoy: GuidedProblem = {
   writeUp: {
     shortRecord: [
       { id: 'hour', text: 'За 1 год (60 хв) — 3000 м' },
-      { id: 'twenty', text: 'За 20 хв — ? м' },
+      { id: 'twenty', text: 'За 20 хв — ? м', tag: 'asked' },
     ],
     unitChanges: [{ line: '1 год = 60 хв', value: '60' }],
     plans: [
@@ -48,6 +58,7 @@ const walkingBoy: GuidedProblem = {
               answer: 'менше',
               hint: 'Подивись на короткий запис: 3000 м — це за всю годину, за 60 хв. А 1 хв довша чи коротша за годину?',
               explain: 'Хвилина коротша за годину, тож за хвилину він проходить менше, ніж 3000 м.',
+              relationType: 'threeQuantities',
             },
           },
           {
@@ -70,6 +81,7 @@ const walkingBoy: GuidedProblem = {
               answer: 'більше',
               hint: 'За 1 хв — 50 м. А 20 хв довші чи коротші за 1 хв?',
               explain: '20 хв довші за 1 хв, тож і пройде він більше, ніж 50 м.',
+              relationType: 'threeQuantities',
             },
           },
         ],
@@ -102,7 +114,7 @@ const walkingBoy: GuidedProblem = {
             signHints: {
               '+': '3 — це не метри, а у скільки разів менше часу. До метрів не додають рази.',
               '−': '3 — це не метри, а у скільки разів менше часу. Від метрів не віднімають рази.',
-              '·': 'За 20 хв він пройде більше чи менше, ніж за годину?',
+              '·': 'За 20 хв він пройде більше чи менше, ніж за годину? А 3000 · 3 — більше чи менше, ніж 3000?',
             },
             reason: 'Година — це 3 рази по 20 хв, тож 3000 м ділимо на 3 рівні частини.',
             direction: {
@@ -111,6 +123,7 @@ const walkingBoy: GuidedProblem = {
               answer: 'менше',
               hint: '3000 м — це за всю годину. А 20 хв довші чи коротші за годину?',
               explain: '20 хв коротші за годину, тож і пройде він менше, ніж 3000 м.',
+              relationType: 'threeQuantities',
             },
           },
         ],
@@ -121,7 +134,7 @@ const walkingBoy: GuidedProblem = {
   },
   review: {
     checks: [
-      '1000 м менше за 3000 м: за 20 хв він проходить менше, ніж за годину.',
+      '1000 м менше за 3000 м: за 20 хв він пройде менше, ніж за годину.',
       '20 хв уміщаються в годині 3 рази, а 1000 · 3 = 3000 м. Сходиться.',
       'Відповідь у метрах, як і питали.',
     ],
@@ -154,7 +167,7 @@ const walkingBoy: GuidedProblem = {
         prompt: '«Яку відстань він пройде за 20 хвилин?»',
         options: [
           { text: 'Швидкість хлопчика', hint: 'Питають «яку відстань», а не швидкість.' },
-          { text: 'Час, за який хлопчик пройде 3000 м', hint: 'Час уже відомий: 20 хвилин. Питають відстань.' },
+          { text: 'Час, за який хлопчик пройде 3000 м', hint: 'Це вже відомо: 3000 м він пройшов за годину. Питають, яку відстань він пройде за 20 хв.' },
           { text: 'Відстань, яку хлопчик пройде за 20 хв, у метрах', right: true },
         ],
         explain: 'Записуємо це в короткий запис зі знаком «?».',
@@ -196,7 +209,7 @@ const walkingBoy: GuidedProblem = {
             },
             { text: 'Ні. Спершу переведу: 1 год = 60 хв', right: true },
           ],
-          explain: 'Тепер обидва часи в хвилинах.',
+          explain: 'Тепер і годину, і 20 хв записано в хвилинах.',
           writes: ['hour'],
         },
       ],
@@ -206,14 +219,14 @@ const walkingBoy: GuidedProblem = {
         {
           text: 'За 60 хв хлопчик проходить 3000 м',
           type: 'threeQuantities',
-          hint: 'Тут є швидкість, час і відстань.',
+          hint: 'Тут є швидкість, час і відстань. І рухається тільки один — хлопчик.',
           id: 'hour',
           quote: 'Хлопчик пройшов 3000 м за годину.',
         },
         {
           text: 'За 20 хв з тією самою швидкістю він пройде ? м',
           type: 'threeQuantities',
-          hint: 'Знову швидкість, час і відстань.',
+          hint: 'Знову швидкість, час і відстань. І знову рухається тільки хлопчик.',
           id: 'twenty',
           quote: 'Яку відстань він пройде за 20 хвилин?',
           note: 'Він іде з тією самою швидкістю.',
@@ -283,7 +296,7 @@ const walkingBoy: GuidedProblem = {
   },
 }
 
-const triangle: GuidedProblem = {
+export const TRIANGLE: GuidedProblem = {
   id: '4.7',
   level: 4,
   story: 'Трикутник',
@@ -305,9 +318,9 @@ const triangle: GuidedProblem = {
   writeUp: {
     shortRecord: [
       { id: 'ab', text: 'AB — 8,4 см' },
-      { id: 'bc', text: 'BC — ?, на 3,7 см більша, ніж AB' },
-      { id: 'ac', text: 'AC — ?, на 5,1 см більша, ніж BC' },
-      { id: 'p', text: 'P — ?' },
+      { id: 'bc', text: 'BC — ?, на 3,7 см більша, ніж AB', tag: 'restated', compare: { bigger: 'BC', smaller: 'AB' } },
+      { id: 'ac', text: 'AC — ?, на 5,1 см більша, ніж BC', tag: 'restated', compare: { bigger: 'AC', smaller: 'BC' } },
+      { id: 'p', text: 'P — ?', tag: 'asked' },
     ],
     plans: [
       {
@@ -322,7 +335,7 @@ const triangle: GuidedProblem = {
             hint: 'Подивись на короткий запис: BC на 3,7 см більша, ніж AB.',
             signHints: {
               '−': 'Подивись на короткий запис: BC на 3,7 см більша, ніж AB. А 8,4 − 3,7 вийде менше, ніж AB.',
-              '·': 'BC більша, ніж AB, не у 3,7 раза, а на 3,7 см. Подивись на схему: BC — це AB і ще 3,7 см.',
+              '·': 'BC більша, ніж AB, не в 3,7 раза, а на 3,7 см. Подивись на схему: BC — це AB і ще 3,7 см.',
               ':': '3,7 см — це не у скільки разів, а на скільки BC більша, ніж AB. Подивись на схему: BC — це AB і ще 3,7 см.',
             },
             reason: 'BC — це AB і ще 3,7 см.',
@@ -337,7 +350,7 @@ const triangle: GuidedProblem = {
             hint: 'Подивись на короткий запис: AC на 5,1 см більша, ніж BC.',
             signHints: {
               '−': '«Менша» в задачі сказано про BC. Подивись на короткий запис: AC на 5,1 см більша, ніж BC. А 12,1 − 5,1 вийде менше, ніж BC.',
-              '·': 'AC більша, ніж BC, не у 5,1 раза, а на 5,1 см. Подивись на схему: AC — це BC і ще 5,1 см.',
+              '·': 'AC більша, ніж BC, не в 5,1 раза, а на 5,1 см. Подивись на схему: AC — це BC і ще 5,1 см.',
               ':': '5,1 см — це не у скільки разів, а на скільки AC більша, ніж BC. Подивись на схему: AC — це BC і ще 5,1 см.',
             },
             reason: 'AC на 5,1 см більша, ніж BC: це BC і ще 5,1 см.',
@@ -495,7 +508,7 @@ const triangle: GuidedProblem = {
         {
           text: 'AC на 5,1 см більша, ніж BC',
           type: 'difference',
-          hint: 'Сказано, на скільки одна сторона більша за іншу.',
+          hint: 'Сказано, на скільки одна сторона менша від іншої.',
           id: 'bcAc',
           quote: 'Сторона BC … на 5,1 см менша від AC',
         },
@@ -565,7 +578,7 @@ const triangle: GuidedProblem = {
   },
 }
 
-export const PROBLEMS: readonly GuidedProblem[] = [walkingBoy, triangle]
+export const PROBLEMS: readonly GuidedProblem[] = sortBySlot([...LEVEL_1, ...LEVEL_2, WALKING_BOY, ...LEVEL_3, ...LEVEL_4, TRIANGLE])
 
 export function findProblem(id: string): GuidedProblem | undefined {
   return PROBLEMS.find((problem) => problem.id === id)

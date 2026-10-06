@@ -11,6 +11,7 @@ import { Chip, OptionButton, TaskHeading } from '../layout/controls'
 import { optionState } from '../layout/optionState'
 import { bringIntoView } from '../layout/scroll'
 import { useTries } from '../useTries'
+import { lineText } from '../../fading/plan'
 
 const SIGN_NAMES = { '+': 'плюс', '−': 'мінус', '·': 'помножити', ':': 'поділити' } as const
 const DIRECTION_LABELS: Record<Direction, string> = { більше: 'Більше', менше: 'Менше' }
@@ -111,7 +112,7 @@ export function ComputeScreen({ position }: { position: number }) {
       task={
         <>
           <TaskHeading title="Обчисли" eyebrow={`Дія ${position + 1} з ${actions.length}`} />
-          <p className="task-prompt">Знайди: {action.explanation}.</p>
+          <p className="task-prompt">Знайди: {lineText(problem, action.id)}.</p>
           {check &&
             (building ? (
               <DirectionNote check={check} />
@@ -191,7 +192,7 @@ type DirectionQuestionProps = {
 }
 
 /** The direction check, before she builds the action: «За 20 хв він пройде більше чи менше, ніж 3000 м?» */
-function DirectionQuestion({ check, picked, markedWrong, done, onPick }: DirectionQuestionProps) {
+export function DirectionQuestion({ check, picked, markedWrong, done, onPick }: DirectionQuestionProps) {
   const at = (d: Direction | null) => (d === null ? null : DIRECTIONS.indexOf(d))
   return (
     <section className="direction" aria-label="Більше чи менше?">
@@ -209,7 +210,7 @@ function DirectionQuestion({ check, picked, markedWrong, done, onPick }: Directi
 }
 
 /** The direction check's answer, kept in view while she builds the action. */
-function DirectionNote({ check }: { check: DirectionCheck }) {
+export function DirectionNote({ check }: { check: DirectionCheck }) {
   return (
     <p className="direction-note">
       <span className="eyebrow">Ти вже знаєш</span>

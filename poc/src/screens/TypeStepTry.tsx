@@ -6,6 +6,7 @@ import { DiagramScreen } from '../guided/screens/DiagramScreen'
 import { TypesScreen } from '../guided/screens/TypesScreen'
 import { finishTry, notebookAtTypeStep, recordTryEvent, startTry } from '../guided/typeStep/tryMode'
 import { loadTypeStepVariant } from '../guided/typeStep/variants'
+import { FULLY_GUIDED } from '../fading/stages'
 import '../guided/guided.css'
 
 function backToParent() {
@@ -48,6 +49,8 @@ export function TypeStepTry({ problem }: { problem: GuidedProblem }) {
     notebook,
     screens,
     index,
+    // The try shows the step as Levels 1–2 prompt it, whatever the stage switch says.
+    play: FULLY_GUIDED,
     update: setNotebook,
     next: () => {
       if (screens[index + 1]?.step === 'typeDiagram') return setIndex(index + 1)
@@ -57,6 +60,7 @@ export function TypeStepTry({ problem }: { problem: GuidedProblem }) {
     record: (event) => {
       if (startedAt) recordTryEvent(startedAt, { at: new Date().toISOString(), ...event, variant })
     },
+    log: () => {},
     exit: backToParent,
     finish: backToParent,
   }

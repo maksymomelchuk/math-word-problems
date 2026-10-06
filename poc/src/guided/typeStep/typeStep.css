@@ -41,7 +41,7 @@
 .type-option-example {
   display: block;
   margin-top: 4px;
-  font-size: 0.9375rem;
+  font-size: var(--text-sm);
   font-weight: 600;
   line-height: 1.35;
   opacity: 0.8;
@@ -63,7 +63,7 @@
 
 .type-options--pictures .type-option-name {
   align-self: center;
-  font-size: 0.9375rem;
+  font-size: var(--text-sm);
 }
 
 /* В, first question: a family's diagram beside its words. */
@@ -146,7 +146,7 @@
 /* What she has named so far in this problem. */
 .type-named {
   margin-top: 18px;
-  font-size: 0.9375rem;
+  font-size: var(--text-sm);
   color: var(--muted);
 }
 

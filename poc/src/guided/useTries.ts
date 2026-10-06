@@ -24,14 +24,17 @@ export type SubmitOptions = {
   settle?: (shown: boolean) => void
   /** After a wrong try that gets a hint, e.g. to mark what was wrong. */
   onHint?: () => void
+  /** After every answered try, right or wrong, for a paper step's own records. `shown`: this try ended with the answer shown. */
+  onTry?: (outcome: { right: boolean; shown: boolean }) => void
 }
 
 /**
  * Hint, then show: the first wrong try gets a hint, the second shows the
  * answer with its reason and she carries on. Each wrong try is recorded
- * against the step, and an arithmetic slip is marked as one.
+ * against the step, and an arithmetic slip is marked as one. A paper step's
+ * checks are `silent`: the screen keeps its own records in the attempt's log.
  */
-export function useTries(step: StepId) {
+export function useTries(step: StepId, { silent = false }: { silent?: boolean } = {}) {
   const { record } = useFlow()
   const [tries, setTries] = useState(0)
   const [phase, setPhase] = useState<Phase>('open')
@@ -44,6 +47,7 @@ export function useTries(step: StepId) {
       return
     }
     if (verdict.kind === 'right') {
+      options.onTry?.({ right: true, shown: false })
       options.settle?.(false)
       setPhase('right')
       setFeedback({ tone: 'ok', message: options.explain ? `Так. ${options.explain}` : 'Правильно!' })
@@ -52,7 +56,8 @@ export function useTries(step: StepId) {
     const attempt = tries + 1
     setTries(attempt)
     const shown = attempt >= 2
-    record({ step, ...(options.part ? { part: options.part } : {}), help: shown ? 'shown' : 'hint', ...(verdict.slip ? { slip: true } : {}), ...(verdict.sign ? { sign: verdict.sign } : {}) })
+    options.onTry?.({ right: false, shown })
+    if (!silent) record({ step, ...(options.part ? { part: options.part } : {}), help: shown ? 'shown' : 'hint', ...(verdict.slip ? { slip: true } : {}), ...(verdict.sign ? { sign: verdict.sign } : {}) })
     if (!shown) {
       options.onHint?.()
       setFeedback({ tone: 'bad', message: verdict.hint })
@@ -81,5 +86,19 @@ export function useTries(step: StepId) {
     if (phase === 'open') setFeedback({ tone: 'info', message })
   }
 
-  return { phase, done: phase !== 'open', feedback, submit, clear, restart, inform }
+  /** Shows the answer without a wrong try: the second «Підказка» tap on a paper step. */
+  function show(options: Pick<SubmitOptions, 'reveal' | 'settle'> & { message: string }) {
+    if (phase !== 'open') return
+    options.reveal?.()
+    options.settle?.(true)
+    setPhase('shown')
+    setFeedback({ tone: 'shown', message: options.message })
+  }
+
+  /** A message in the dock with the screen's own tone, such as «Виправ у зошиті.» after a «Ні». */
+  function say(feedback: Feedback) {
+    setFeedback(feedback)
+  }
+
+  return { phase, done: phase !== 'open', tries, feedback, submit, clear, restart, inform, show, say }
 }

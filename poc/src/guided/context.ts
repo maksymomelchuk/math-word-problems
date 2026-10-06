@@ -1,6 +1,7 @@
 import { createContext, useContext } from 'react'
 import type { GuidedProblem } from '../problems/types'
-import type { HelpEvent } from '../lib/progress'
+import type { HelpEvent, LogEventInput } from '../lib/progress'
+import type { Play } from '../fading/stages'
 import type { Notebook, Screen } from './flow'
 
 export type FlowContextValue = {
@@ -8,12 +9,16 @@ export type FlowContextValue = {
   notebook: Notebook
   screens: Screen[]
   index: number
+  /** How this attempt plays: its stage, step size, solo try. */
+  play: Play
   /** Changes the notebook when a screen settles. */
   update: (change: (notebook: Notebook) => Notebook) => void
   /** On to the next screen. */
   next: () => void
   /** Records a hint, a shown answer or a slip against a step. */
   record: (event: Omit<HelpEvent, 'at'>) => void
+  /** Records a paper step's or the fading's event (`LogEvent`). */
+  log: (event: LogEventInput) => void
   /** Back to the list of problems. The problem stays open. */
   exit: () => void
   /** The closing Розбір is done. */

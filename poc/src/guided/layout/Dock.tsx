@@ -8,10 +8,12 @@ type DockProps = {
   onMain: () => void
   /** Enter presses the main button. Off where a keypad already handles Enter. */
   enterKey?: boolean
+  /** A screen that never has feedback (a handover, the end): no empty line held over the button. */
+  quiet?: boolean
 }
 
 /** The bottom bar: feedback on her answer, and the one main button («Перевірити», «Далі»). */
-export function Dock({ feedback, label, onMain, enterKey = true }: DockProps) {
+export function Dock({ feedback, label, onMain, enterKey = true, quiet = false }: DockProps) {
   const ref = useRef<HTMLElement>(null)
   useHeightVariable(ref, 'dock-h')
   const latest = useRef(onMain)
@@ -34,10 +36,14 @@ export function Dock({ feedback, label, onMain, enterKey = true }: DockProps) {
   }, [enterKey])
 
   return (
-    <footer className="dock" data-tone={feedback.tone} ref={ref}>
+    <footer className="dock" data-tone={feedback.tone} data-quiet={quiet || undefined} ref={ref}>
       <div className="dock-inner">
-        <p className="dock-message" role="status" aria-live="polite">
-          {feedback.message}
+        <p className="dock-message" role="status" aria-live="polite" hidden={quiet}>
+          {feedback.message && (
+            <span key={`${feedback.tone}:${feedback.message}`} className="dock-message-text">
+              {feedback.message}
+            </span>
+          )}
         </p>
         <button type="button" className="main-button" data-tone={feedback.tone} onClick={onMain}>
           {label}

@@ -7,7 +7,10 @@
 import { add, compare, divide, equals, formatDecimal, multiply, parseDecimal, subtract, type Decimal } from '../lib/decimal'
 import { numbersIn } from './numbers'
 import { checkRelationQuotes } from './validateRelations'
-import { SIGNS, type Action, type Choice, type GuidedProblem, type Label, type Option, type SolutionPlan, type TableCell, type Writes } from './types'
+import { parseSlot } from './slots'
+import { PROBLEM_TYPES, SIGNS, type Action, type Choice, type GuidedProblem, type Label, type Option, type ProblemTypeId, type SolutionPlan, type TableCell, type Writes } from './types'
+import { planComplete, planWords, validNextLines } from '../fading/plan'
+import { STAGES, stageOfSlot } from '../fading/stages'
 
 function oneRight(options: readonly Option[], where: string, errors: string[]): void {
   const right = options.filter((option) => 'right' in option).length
@@ -82,8 +85,8 @@ function checkPlan(problem: GuidedProblem, plan: SolutionPlan, label: string, ba
   })
 }
 
-/** An action's per-sign hints and its direction check. */
-function checkActionHelp(action: Action, where: string, errors: string[]): void {
+/** An action's per-sign hints and its direction check. `types` are the problem's relations' types, when it lists them. */
+function checkActionHelp(action: Action, where: string, errors: string[], types: readonly ProblemTypeId[]): void {
   if (action.signHints) {
     if (action.signHints[action.sign] !== undefined) errors.push(`${where}: a sign hint for «${action.sign}», the action's own sign`)
     const missing = SIGNS.filter((sign) => sign !== action.sign && !action.signHints![sign]?.trim())
@@ -101,6 +104,58 @@ function checkActionHelp(action: Action, where: string, errors: string[]): void 
     else if ((truth > 0 ? 'більше' : 'менше') !== check.answer) errors.push(`${where}: ${action.result} isn't «${check.answer}» than ${check.comparedWith}`)
   }
   if (!check.hint.trim() || !check.explain.trim()) errors.push(`${where}: the direction check needs a hint and an explanation`)
+  if (!PROBLEM_TYPES.some((t) => t.id === check.relationType)) errors.push(`${where}: the direction check needs the relationType it belongs to`)
+  else if (check.relationType === 'fraction') errors.push(`${where}: no direction check on «дріб від числа», where «менше» goes with multiplying`)
+  else if (types.length && !types.includes(check.relationType)) errors.push(`${where}: the direction check's type «${check.relationType}» isn't one of the problem's relations`)
+}
+
+/** Her own plan, line by line: walking each plan in its own order, every line is a valid next line, and the last one ends a plan. */
+function checkDerivedLines(plans: readonly SolutionPlan[], at: (where: string) => string, errors: string[]): void {
+  plans.forEach((plan, p) => {
+    const lines: string[] = []
+    for (const action of plan.actions) {
+      if (!validNextLines(plans, lines).includes(action.id)) {
+        errors.push(at(`plan ${p + 1}: «${action.id}» isn't a valid next line after ${lines.join(', ') || 'nothing'}`))
+        return
+      }
+      lines.push(action.id)
+    }
+    if (!planComplete(plans, lines)) errors.push(at(`plan ${p + 1}: its lines don't end a plan`))
+  })
+}
+
+/** The short record's tags: the «?» line, and each comparison's two quantities for «Хто більший?». */
+function checkTags(problem: GuidedProblem, at: (where: string) => string, errors: string[]): void {
+  const lines = problem.writeUp.shortRecord
+  if (!lines.some((line) => line.tag === 'asked')) errors.push(at("short record: no line is tagged 'asked'"))
+  for (const line of lines) {
+    if (line.tag === 'asked' && !line.text.includes('?')) errors.push(at(`short record «${line.id}»: tagged 'asked' but has no «?»`))
+    if (line.tag === 'restated' && !line.compare) errors.push(at(`short record «${line.id}»: a restated line needs compare`))
+    if (line.compare) {
+      const { bigger, smaller } = line.compare
+      if (!bigger?.trim() || !smaller?.trim()) errors.push(at(`short record «${line.id}»: compare needs both names`))
+      else if (bigger.trim().toLowerCase() === smaller.trim().toLowerCase()) errors.push(at(`short record «${line.id}»: compare names the same quantity twice`))
+    }
+  }
+}
+
+/** The data covers every step its slot's stage prompts. */
+function checkStageData(problem: GuidedProblem, comparisons: number, at: (where: string) => string, errors: string[]): void {
+  const stage = STAGES[stageOfSlot(problem.id)]
+  const { steps } = problem
+  const has: Record<string, boolean> = {
+    retell: !!steps.retell,
+    asked: !!steps.asked,
+    given: !!steps.given,
+    decode: !!steps.decode || !comparisons,
+    typeDiagram: !!steps.typeDiagram,
+    plan: !!steps.plan,
+    compute: true,
+    answer: !!steps.answer,
+  }
+  for (const step of stage.prompted) {
+    if (!has[step]) errors.push(at(`stage ${stage.label} prompts «${step}», but the problem has no data for it`))
+  }
 }
 
 function slotsIn(label: Label | undefined | null): string[] {
@@ -117,6 +172,11 @@ export function validateProblem(problem: GuidedProblem): string[] {
   const at = (where: string) => `${problem.id} ${where}`
   const { writeUp, steps } = problem
 
+  // the slot, which gives the problem its stage
+  const slot = parseSlot(problem.id)
+  if (!slot) errors.push(at('id: not a problem-set slot such as 2.3'))
+  else if (slot.level !== problem.level) errors.push(at(`level ${problem.level} doesn't match the slot`))
+
   // the text
   const numberIds = problem.text.flatMap((part) => (part.number ? [part.number] : []))
   if (new Set(numberIds).size !== numberIds.length) errors.push(at('text: a number id is used twice'))
@@ -128,8 +188,16 @@ export function validateProblem(problem: GuidedProblem): string[] {
   if (new Set(lineIds).size !== lineIds.length) errors.push(at('short record: a line id is used twice'))
   if (!writeUp.plans.length) errors.push(at('write-up: no plans'))
   writeUp.plans.forEach((plan, p) => checkPlan(problem, plan, at(`plan ${p + 1}`), base, errors))
+  if (writeUp.plans.length) checkDerivedLines(writeUp.plans, at, errors)
+  checkTags(problem, at, errors)
   const main = writeUp.plans[0]
+  // A fraction's numerator 1 («1/4 усіх деталей») is never an action's term: dividing by 4 already finds a quarter.
+  const unitNumerator = problem.text.some((part) => part.number && /(^|\D)1\/\d/.test(part.text))
+  // A unit change uses the number it converts («2 кг = 2000 г» uses 2), as check-problem-set.py counts it.
+  const converted = (writeUp.unitChanges ?? []).map((change) => numbersIn(change.line)[0] ?? '')
   for (const number of textNumbers) {
+    if (unitNumerator && number === '1') continue
+    if (converted.some((n) => sameNumber(n, number))) continue
     if (main && !main.actions.some((a) => a.terms.some((t) => sameNumber(t, number)))) errors.push(at(`plan 1: doesn't use ${number} from the text`))
   }
   for (const part of writeUp.answerParts) {
@@ -139,6 +207,17 @@ export function validateProblem(problem: GuidedProblem): string[] {
       })
       if (!writeUp.answer.includes(part.value)) errors.push(at(`«${writeUp.answer}» doesn't hold ${part.value}`))
     } else if (!part.options.includes(part.value)) errors.push(at(`answer: «${part.value}» isn't one of its options`))
+  }
+  // A name in the answer («хто наловив більше») is hers to find: the plan line of the
+  // action that finds the answer's number mustn't name either option before she computes.
+  const names = writeUp.answerParts.flatMap((part) => (part.kind === 'name' ? part.options : []))
+  const answerNumbers = writeUp.answerParts.flatMap((part) => (part.kind === 'number' ? [part.value] : []))
+  for (const action of writeUp.plans.flatMap((plan) => plan.actions)) {
+    if (!answerNumbers.some((n) => sameNumber(n, action.result))) continue
+    const card = steps.plan?.cards.find((c) => c.id === action.id && !c.reason)
+    const words = card?.text ?? planWords(action)
+    const named = names.filter((name) => words.includes(name))
+    if (named.length) errors.push(at(`plan line «${words}» names ${named.join(', ')} before she computes: give «${action.id}» its own \`line\``))
   }
   if (!writeUp.answer.startsWith('Відповідь: ')) errors.push(at('the answer line must start with «Відповідь: »'))
 
@@ -221,7 +300,8 @@ export function validateProblem(problem: GuidedProblem): string[] {
       }),
     )
   }
-  writeUp.plans.forEach((plan, p) => plan.actions.forEach((action, i) => checkActionHelp(action, at(`plan ${p + 1} ${i + 1})`), errors)))
+  const types = (steps.typeDiagram?.relations ?? []).map((relation) => relation.type)
+  writeUp.plans.forEach((plan, p) => plan.actions.forEach((action, i) => checkActionHelp(action, at(`plan ${p + 1} ${i + 1})`), errors, types)))
   choice(steps.answer, 'Відповідь')
   const answerSentence = writeUp.answer.replace(/^Відповідь: /, '').toLowerCase()
   if (steps.answer && !steps.answer.options.some((o) => 'right' in o && o.text.toLowerCase() === answerSentence)) {
@@ -234,6 +314,8 @@ export function validateProblem(problem: GuidedProblem): string[] {
       if (record[line.id] !== line.text) errors.push(at(`short record: the steps end with «${record[line.id] ?? '(nothing)'}» for «${line.text}»`))
     }
   }
+
+  checkStageData(problem, comparisonIds.length, at, errors)
 
   if (problem.review.checks.length < 2 || problem.review.checks.length > 3) errors.push(at(`Розбір: ${problem.review.checks.length} checks, expected 2–3`))
   return errors

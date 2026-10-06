@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 import { STEP_NAMES } from '../../problems/types'
-import { stepsShown } from '../flow'
+import { STAGES } from '../../fading/stages'
+import { segmentOf, stepsShown } from '../flow'
 import { useFlow } from '../context'
 import { useHeightVariable } from './scroll'
 
@@ -12,14 +13,28 @@ function segmentState(segment: number, current: number): 'done' | 'current' | 't
 
 /** The close button and the routine's progress: one segment per step this problem has. */
 export function TopBar() {
-  const { screens, index, exit } = useFlow()
+  const { screens, index, play, exit } = useFlow()
   const ref = useRef<HTMLElement>(null)
   useHeightVariable(ref, 'topbar-h')
 
   const steps = stepsShown(screens)
   const screen = screens[index]
-  const current = screen.step === 'review' ? steps.length : steps.indexOf(screen.step)
-  const label = screen.step === 'review' ? 'Розбір' : `Крок ${current + 1} з ${steps.length}: ${STEP_NAMES[screen.step]}`
+  const segment = segmentOf(screen)
+  const together = play.stepSize === 'small' && screens.some((s) => s.kind === 'planLine')
+  let current = -1
+  let label = 'Початок'
+  if (segment === 'review') {
+    current = steps.length
+    label = 'Розбір'
+  } else if (screen.kind === 'nextStep') {
+    // She is choosing the step herself: the bar shows only the steps done, never the one that's due.
+    current = steps.indexOf(screen.step) - 0.5
+    label = 'Який крок далі?'
+  } else if (segment !== 'start') {
+    current = steps.indexOf(segment)
+    const name = segment === 'plan' && together ? 'План і дії' : STEP_NAMES[segment]
+    label = `Крок ${current + 1} з ${steps.length}: ${name}`
+  }
 
   return (
     <header className="topbar" ref={ref}>
@@ -39,6 +54,11 @@ export function TopBar() {
             {label}
           </p>
         </div>
+        {play.switched && (
+          <span className="switch-badge" title="Увімкнено перемикач етапів під «Для батьків»">
+            Етап {STAGES[play.stage].label}
+          </span>
+        )}
       </div>
     </header>
   )

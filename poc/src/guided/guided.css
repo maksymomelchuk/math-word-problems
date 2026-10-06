@@ -94,6 +94,15 @@
 .task {
   scroll-margin-top: var(--below-topbar);
   scroll-margin-bottom: var(--above-dock);
+  /* Each screen's task arrives with a short fade, so a new step reads as new. The text and the notebook stay put. */
+  animation: task-in var(--dur-enter) var(--ease-out);
+}
+
+@keyframes task-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
 }
 
 /* ---------- the problem text ---------- */
@@ -106,7 +115,7 @@
 }
 
 .problem-text {
-  font-size: 1.1875rem;
+  font-size: var(--text-lg);
   font-weight: 600;
   /* Room between lines, so a highlight (text height + 2px each side) never meets the next line's. */
   line-height: 1.75;
@@ -212,7 +221,7 @@
 }
 
 .paper-placeholder {
-  font-size: 0.9375rem;
+  font-size: var(--text-sm);
   font-weight: 600;
   line-height: 28px;
   color: var(--muted);
@@ -267,7 +276,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  font-size: 1.375rem;
+  font-size: var(--text-xl);
   font-weight: 800;
   line-height: 1.25;
   text-wrap: balance;
@@ -275,7 +284,7 @@
 
 .why-badge {
   padding: 2px 10px;
-  font-size: 0.8125rem;
+  font-size: var(--text-xs);
   font-weight: 800;
   letter-spacing: 0.02em;
   color: #fff;
@@ -285,7 +294,7 @@
 
 .task-prompt {
   margin-bottom: 14px;
-  font-size: 1.0625rem;
+  font-size: var(--text-md);
   line-height: 1.45;
 }
 
@@ -308,7 +317,7 @@
 .quote {
   margin: 4px 0 12px;
   padding: 10px 14px;
-  font-size: 1.1875rem;
+  font-size: var(--text-lg);
   font-weight: 700;
   line-height: 1.5;
   background: var(--pink-bg);
@@ -338,6 +347,7 @@
 
 .relation {
   padding: 12px;
+  background: var(--surface);
   border: 2px solid var(--line);
   border-radius: var(--radius-card);
   transition:
@@ -387,13 +397,13 @@
   width: 100%;
   min-height: 52px;
   padding: 12px 14px;
-  font-size: 1.0625rem;
+  font-size: var(--text-md);
   font-weight: 600;
   line-height: 1.4;
   text-align: left;
   color: var(--muted);
-  background: #fafafa;
-  border: 2px dashed #b9b9b9;
+  background: rgb(255 255 255 / 0.6);
+  border: 2px dashed #b9bbb4;
   border-radius: 14px;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
@@ -438,6 +448,7 @@
 .action-line {
   margin-bottom: 14px;
   padding: 8px 12px;
+  background: var(--surface);
   font-size: 1.125rem;
   font-weight: 700;
   line-height: 2.1;
@@ -498,7 +509,7 @@
 
 .direction-question {
   margin-bottom: 12px;
-  font-size: 1.1875rem;
+  font-size: var(--text-lg);
   font-weight: 800;
   line-height: 1.4;
   text-wrap: pretty;
@@ -542,7 +553,18 @@
   height: clamp(3.25rem, 6.5svh, 4rem);
 }
 
-/* Розбір */
+/* Розбір: one card under the end of the problem, as in the mock. */
+.review {
+  padding: 16px 18px;
+  background: var(--surface);
+  border: 2px solid var(--line);
+  border-radius: var(--radius-card);
+}
+
+.review > :last-child {
+  margin-bottom: 0;
+}
+
 .checks {
   display: grid;
   gap: 8px;
@@ -613,9 +635,22 @@
 
 .dock-message {
   min-height: 1.45em;
-  font-size: 1.0625rem;
+  font-size: var(--text-md);
   font-weight: 800;
   line-height: 1.45;
+}
+
+/* A new message rises in; its line is held, so the button never moves for it. */
+.dock-message-text {
+  display: block;
+  animation: dock-message-in var(--dur-enter) var(--ease-out);
+}
+
+@keyframes dock-message-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
 }
 
 .dock[data-tone='ok'] .dock-message {
@@ -657,6 +692,12 @@
     align-items: center;
     column-gap: 24px;
   }
+
+  /* No message line: the button keeps its place on the right. */
+  .dock[data-quiet] .dock-inner {
+    grid-template-columns: 300px;
+    justify-content: end;
+  }
 }
 
 /* Phones in landscape: tighten. */
@@ -688,6 +729,8 @@
     transition: none;
   }
 
+  .task,
+  .dock-message-text,
   .paper-line[data-fresh],
   .paper-diagram[data-fresh],
   .action-slot .caret {

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { Choice, StepId } from '../../problems/types'
 import { checkOption, rightOption } from '../checks'
 import { useFlow } from '../context'
-import { applyWrites, type Notebook } from '../flow'
+import { writesAt, type Notebook } from '../flow'
 import { Dock } from '../layout/Dock'
 import { FlowLayout } from '../layout/FlowLayout'
 import { ProblemText } from '../layout/ProblemText'
@@ -24,7 +24,7 @@ type ChoiceScreenProps = {
 
 /** A pick-one menu: Перекажи, what exactly is asked, hidden information, «Чому?», Відповідь. */
 export function ChoiceScreen({ choice, step, part, why, eyebrow, settle = (n) => n }: ChoiceScreenProps) {
-  const { problem, notebook, update, next } = useFlow()
+  const { problem, notebook, play, update, next } = useFlow()
   const tries = useTries(step)
   const [picked, setPicked] = useState<number | null>(null)
   const [markedWrong, setMarkedWrong] = useState<number | null>(null)
@@ -42,7 +42,7 @@ export function ChoiceScreen({ choice, step, part, why, eyebrow, settle = (n) =>
       part,
       explain: choice.explain,
       onHint: () => setMarkedWrong(picked),
-      settle: () => update((n) => settle({ ...n, record: applyWrites(problem, n.record, choice) })),
+      settle: () => update((n) => settle({ ...n, record: writesAt(problem, play, n.record, choice) })),
     })
   }
 

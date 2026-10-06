@@ -7,10 +7,13 @@ import {
   isSolved,
   loadProgress,
   recordHelp,
+  recordLevelEndSeen,
   recordPlan,
+  recordSetEndSeen,
   resetProgress,
   saveProgress,
   startAttempt,
+  withLog,
   type ProgressStorage,
 } from './progress'
 
@@ -112,5 +115,35 @@ describe('recording an attempt', () => {
       { at: '2026-10-03T10:01:00.000Z', step: 'compute', part: 'asked-direction', help: 'hint' },
       { at: '2026-10-03T10:02:00.000Z', step: 'compute', part: 'asked', help: 'hint', sign: '+' },
     ])
+  })
+})
+
+describe('the fading records', () => {
+  it('reads records saved before them, and adds the log and play notes alongside', () => {
+    const storage = memoryStorage()
+    const old = { version: PROGRESS_VERSION, problems: { '2.3': { attempts: [{ startedAt: '2026-10-02T10:00:00.000Z', prompted: ['retell'], plan: 1, events: [{ at: '2026-10-02T10:01:00.000Z', step: 'compute', part: 'asked', help: 'hint', sign: '+' }] }] } } }
+    storage.setItem(STORAGE_KEY, JSON.stringify(old))
+    expect(loadProgress(storage)).toEqual(old)
+    const startedAt = startAttempt('4.7', [], new Date('2026-10-03T10:00:00.000Z'), storage, { stage: '3', stepSize: 'small', switched: true })
+    expect(loadProgress(storage).problems['4.7'].attempts[0]).toMatchObject({ stage: '3', stepSize: 'small', switched: true, events: [] })
+    const logged = withLog(loadProgress(storage), '4.7', startedAt, { at: startedAt, step: 'plan', kind: 'planLine', line: 0, picked: 'bc', right: true })
+    expect(logged.problems['4.7'].attempts[0].log).toHaveLength(1)
+    expect(logged.problems['2.3']).toEqual(old.problems['2.3'])
+  })
+})
+
+describe('the game layer state', () => {
+  it('reads records saved before it, and notes each level-end and the set-end screen once, beside the attempts', () => {
+    const storage = memoryStorage()
+    const old = { version: PROGRESS_VERSION, problems: { '1.1': { attempts: [{ startedAt: '2026-10-03T10:00:00.000Z', finishedAt: '2026-10-03T10:05:00.000Z', prompted: [], events: [], stage: '1' }] } } }
+    storage.setItem(STORAGE_KEY, JSON.stringify(old))
+    expect(loadProgress(storage).game).toBeUndefined()
+    recordLevelEndSeen(1, storage)
+    recordLevelEndSeen(1, storage)
+    expect(loadProgress(storage)).toEqual({ ...old, game: { levelEnds: [1] } })
+    recordSetEndSeen(4, storage)
+    expect(loadProgress(storage).game).toEqual({ levelEnds: [1, 4], setEnd: true })
+    resetProgress(storage)
+    expect(loadProgress(storage).game).toBeUndefined()
   })
 })

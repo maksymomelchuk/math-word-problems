@@ -21,7 +21,7 @@ type SvgLabelProps = {
   start?: boolean
 }
 
-/** A diagram label in SVG: fixed text, or a slot with a 44-unit tap area. */
+/** A diagram label in SVG: fixed text, or a slot with a tap area of at least 44 px. */
 export function SvgLabel({ label, x, y, fill, control, start = false }: SvgLabelProps) {
   if (typeof label === 'string') {
     return (

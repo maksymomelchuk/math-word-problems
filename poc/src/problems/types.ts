@@ -28,12 +28,12 @@ export const STEP_NAMES: Record<StepId, string> = {
 }
 
 /**
- * How a problem runs one step of the routine. Today every step is guided.
- * Fading (the ticket «Build the paper steps and the fading schedule») adds
- * the paper mode here, without changing problems that leave a step out.
+ * How a problem runs one step of the routine: prompted on screen (`guided`)
+ * or written in her notebook and then checked (`paper`). Each problem's stage
+ * comes from its slot (`fading/stages.ts`), so the data normally leaves this out.
  */
 export type StepGuidance = {
-  mode: 'guided'
+  mode: 'guided' | 'paper'
 }
 
 /** Per-step guidance and built-in hint flags. A step left out is guided, with all its built-in hints. */
@@ -73,8 +73,20 @@ export type TextPart = {
   relations?: string[]
 }
 
-/** A short-record line, in its final, decoded form. */
-export type RecordLine = { id: string; text: string }
+/**
+ * A short-record line, in its final, decoded form. Two tags fill in the paper
+ * checks from 3.1 (the data contract with «Write the guided-step data»):
+ * `asked` marks the line with the «?» of what the problem asks; `restated`
+ * marks a comparison as written from the unknown's side, and `compare` names
+ * its two quantities as the «Хто більший: X чи Y?» buttons say them.
+ */
+export type RecordLine = {
+  id: string
+  text: string
+  tag?: 'asked' | 'restated'
+  /** On a `restated` line only: «AC — ?, на 5,1 см більша, ніж BC» has `{ bigger: 'AC', smaller: 'BC' }`. */
+  compare?: { bigger: string; smaller: string }
+}
 
 /** A unit change: «1 год = 60 хв» opens «Розв'язання», and 60 becomes an Обчисли chip. */
 export type UnitChange = { line: string; value: string }
@@ -92,6 +104,15 @@ export type Action = {
   unit: string
   /** The explanation after the dash: «довжина сторони BC». */
   explanation: string
+  /**
+   * The plan line's words, where `explanation` would give an answer away
+   * before she computes: 3.7's «на стільки більше риби наловив Денис, ніж
+   * Марко» names who caught more, so its line reads «на скільки кілограмів
+   * один брат наловив більше, ніж інший». Used for the plan-line options and
+   * «Підказка»'s model lines; the write-up and the shown action keep
+   * `explanation`. Defaults to `explanation`.
+   */
+  line?: string
   /**
    * The actions (numbered from 1 in this plan) that must come before this
    * one. Defaults to every earlier action. A problem's `Order:` line, such as
@@ -133,6 +154,8 @@ export type DirectionCheck = {
   hint: string
   /** Said after the right answer, whether she picked it or it was shown. */
   explain: string
+  /** The type of the relation the action works out. The check fades per type once she gets it right twice in a row. Never `fraction`. */
+  relationType: ProblemTypeId
 }
 
 export type SolutionPlan = { actions: Action[] }
@@ -258,6 +281,8 @@ export type BarsDiagram = {
       length: number
       /** Drawn in the second colour: the extra piece of a «на … більше» bar. */
       extra?: true
+      /** Drawn dashed and empty: the piece a shorter bar lacks, so a «на … менше» comparison needs no second bar. */
+      missing?: true
       /** Shown above the piece. */
       label?: Label
     }[]

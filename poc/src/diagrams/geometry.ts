@@ -2,7 +2,8 @@
 
 export const VIEW_WIDTH = 340
 export const SLOT_HEIGHT = 30
-export const SLOT_HIT = 44
+/** A slot's tap height: 44 px or more even where a phone draws the 340-unit diagram a little smaller. */
+export const SLOT_HIT = 46
 
 /** A rough width for text in the diagrams' 15-unit font. */
 export function textWidth(text: string): number {

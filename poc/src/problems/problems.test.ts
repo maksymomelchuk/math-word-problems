@@ -40,6 +40,10 @@ describe('the problem data', () => {
     resultTooEarly.writeUp.plans[0].actions[1].needs = []
     expect(validateProblem(resultTooEarly).join('\n')).toMatch(/50 is not a number from the text/)
 
+    const namesTheAnswer = copy('3.7')
+    delete namesTheAnswer.writeUp.plans[0].actions[1].line
+    expect(validateProblem(namesTheAnswer).join('\n')).toMatch(/names Марко, Денис before she computes/)
+
     const twoRight = copy('2.3')
     twoRight.steps.retell!.options[0] = { text: 'x', right: true }
     expect(validateProblem(twoRight).join('\n')).toMatch(/Перекажи: 2 right options/)

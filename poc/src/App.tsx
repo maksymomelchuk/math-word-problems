@@ -11,7 +11,8 @@ import { ParentView } from './screens/ParentView'
 import { TypeStepTry } from './screens/TypeStepTry'
 
 /**
- * Routes: `#/` the list of problems, `#/problem/2.3` a guided problem, and two
+ * Routes: `#/` her home (the game layer's path through the problem set, with
+ * the level-end and set-end screens), `#/problem/2.3` a guided problem, and two
  * pages for the parent that her screens don't link to: `#/parent` (what is
  * recorded, and a reset) and `#/diagrams` (diagram samples), plus `#/try/2.3`,
  * the parent's try of one problem's Тип і схема in the version picked there.
